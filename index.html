@@ -1,0 +1,775 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>مرصد الفوتون | Photon Observatory</title>
+    <!-- Google Fonts: Cairo & Tajawal -->
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&family=Tajawal:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Cairo', sans-serif;
+            background-color: #0b0f19;
+            color: #f3f4f6;
+            overflow-x: hidden;
+        }
+        h1, h2, h3, h4, h5, h6, .font-heading {
+            font-family: 'Tajawal', sans-serif;
+        }
+        .glow-gold {
+            box-shadow: 0 0 25px rgba(245, 158, 11, 0.25);
+        }
+        .glow-blue {
+            box-shadow: 0 0 25px rgba(56, 189, 248, 0.25);
+        }
+        .glass-panel {
+            background: rgba(17, 24, 39, 0.75);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        /* Custom Range Sliders */
+        input[type=range] {
+            accent-color: #38bdf8;
+        }
+    </style>
+</head>
+<body class="bg-[#0b0f19] text-gray-100 min-h-screen flex flex-col selection:bg-amber-500 selection:text-black">
+
+    <!-- Header / Navbar -->
+    <header class="glass-panel sticky top-0 z-50 border-b border-gray-800">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+            <div class="flex items-center space-x-3 space-x-reverse cursor-pointer" onclick="switchTab('home')">
+                <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-amber-500 to-sky-400 p-0.5 flex items-center justify-center shadow-lg glow-gold">
+                    <div class="w-full h-full bg-[#0b0f19] rounded-[14px] flex items-center justify-center">
+                        <i class="fa-solid fa-lightbulb text-amber-400 text-xl"></i>
+                    </div>
+                </div>
+                <div>
+                    <h1 class="text-xl font-black tracking-wider bg-gradient-to-r from-amber-400 via-sky-300 to-white bg-clip-text text-transparent">مرصد الفوتون</h1>
+                    <p class="text-xs text-gray-400 font-medium">PHOTON OBSERVATORY</p>
+                </div>
+            </div>
+
+            <!-- Desktop Nav -->
+            <nav class="hidden md:flex items-center space-x-1 space-x-reverse text-sm font-semibold">
+                <button onclick="switchTab('home')" id="nav-home" class="px-4 py-2 rounded-xl transition-all text-amber-400 bg-amber-500/10">الرئيسية</button>
+                <button onclick="switchTab('lab')" id="nav-lab" class="px-4 py-2 rounded-xl transition-all text-gray-300 hover:text-white hover:bg-white/5">المختبر الافتراضي</button>
+                <button onclick="switchTab('laws')" id="nav-laws" class="px-4 py-2 rounded-xl transition-all text-gray-300 hover:text-white hover:bg-white/5">مكتبة القوانين</button>
+                <button onclick="switchTab('notebook')" id="nav-notebook" class="px-4 py-2 rounded-xl transition-all text-gray-300 hover:text-white hover:bg-white/5">دفتر التجارب</button>
+                <button onclick="switchTab('references')" id="nav-references" class="px-4 py-2 rounded-xl transition-all text-gray-300 hover:text-white hover:bg-white/5">المراجع العلمية</button>
+            </nav>
+
+            <!-- Mobile Menu Button -->
+            <div class="md:hidden">
+                <button onclick="toggleMobileMenu()" class="text-gray-300 hover:text-white p-2 focus:outline-none">
+                    <i class="fa-solid fa-bars text-2xl"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Mobile Menu Dropdown -->
+        <div id="mobile-menu" class="hidden md:hidden glass-panel border-t border-gray-800 px-4 pt-2 pb-4 space-y-2">
+            <button onclick="switchTab('home'); toggleMobileMenu();" class="block w-full text-right px-3 py-2 rounded-lg text-amber-400 bg-amber-500/10 font-medium">الرئيسية</button>
+            <button onclick="switchTab('lab'); toggleMobileMenu();" class="block w-full text-right px-3 py-2 rounded-lg text-gray-300 hover:bg-white/5 font-medium">المختبر الافتراضي</button>
+            <button onclick="switchTab('laws'); toggleMobileMenu();" class="block w-full text-right px-3 py-2 rounded-lg text-gray-300 hover:bg-white/5 font-medium">مكتبة القوانين</button>
+            <button onclick="switchTab('notebook'); toggleMobileMenu();" class="block w-full text-right px-3 py-2 rounded-lg text-gray-300 hover:bg-white/5 font-medium">دفتر التجارب</button>
+            <button onclick="switchTab('references'); toggleMobileMenu();" class="block w-full text-right px-3 py-2 rounded-lg text-gray-300 hover:bg-white/5 font-medium">المراجع العلمية</button>
+        </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+        <!-- TAB 1: HOME -->
+        <section id="tab-home" class="space-y-12 animate-fade">
+            <div class="relative overflow-hidden rounded-3xl glass-panel p-8 sm:p-12 border border-amber-500/20 glow-gold">
+                <div class="absolute -left-20 -top-20 w-72 h-72 bg-amber-500/10 rounded-full blur-3xl pointer-events-none"></div>
+                <div class="absolute -right-20 -bottom-20 w-72 h-72 bg-sky-500/10 rounded-full blur-3xl pointer-events-none"></div>
+                
+                <div class="relative z-10 max-w-2xl space-y-6">
+                    <span class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-semibold bg-amber-500/10 text-amber-400 border border-amber-500/30">
+                        <i class="fa-solid fa-atom"></i> بيئة محاكاة فيزيائية تفاعلية
+                    </span>
+                    <h1 class="text-3xl sm:text-5xl font-black leading-tight">
+                        اكتشفي عالم الضوء والبصريات من خلال <span class="bg-gradient-to-r from-amber-400 to-sky-400 bg-clip-text text-transparent">التجربة والقياس</span>
+                    </h1>
+                    <p class="text-gray-300 text-base sm:text-lg leading-relaxed">
+                        مرصد الفوتون هو مختبرك الفيزيائي الافتراضي المخصص لدراسة وتطبيق قوانين الضوء والبصريات وفق منهج الفيزياء السعودي، مع محاكاة دقيقة ورسوم هندسية تفاعلية تتغير لحظياً مع مدخلاتك.
+                    </p>
+                    <div class="flex flex-wrap gap-4 pt-4">
+                        <button onclick="switchTab('lab')" class="px-8 py-4 rounded-2xl bg-gradient-to-r from-amber-500 to-amber-600 text-black font-extrabold hover:opacity-90 transition shadow-lg shadow-amber-500/20 flex items-center gap-3">
+                            <i class="fa-solid fa-flask-vial"></i> ابدئي التجارب الآن
+                        </button>
+                        <button onclick="switchTab('laws')" class="px-8 py-4 rounded-2xl glass-panel text-white font-bold hover:bg-white/10 transition border border-gray-700 flex items-center gap-3">
+                            <i class="fa-solid fa-book-bookmark"></i> مكتبة القوانين
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Features Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="glass-panel p-6 rounded-2xl border border-gray-800 hover:border-amber-500/40 transition">
+                    <div class="w-12 h-12 rounded-xl bg-amber-500/10 flex items-center justify-center text-amber-400 text-xl mb-4">
+                        <i class="fa-solid fa-microscope"></i>
+                    </div>
+                    <h3 class="text-lg font-bold mb-2">محاكاة فيزيائية حقيقية</h3>
+                    <p class="text-gray-400 text-sm leading-relaxed">
+                        تعتمد على حسابات وقوانين فيزيائية دقيقة (قانون سنل، معادلة العدسات، الاستضاءة) وليست رسومات ثابتة.
+                    </p>
+                </div>
+                <div class="glass-panel p-6 rounded-2xl border border-gray-800 hover:border-sky-500/40 transition">
+                    <div class="w-12 h-12 rounded-xl bg-sky-500/10 flex items-center justify-center text-sky-400 text-xl mb-4">
+                        <i class="fa-solid fa-chart-line"></i>
+                    </div>
+                    <h3 class="text-lg font-bold mb-2">تسجيل ونتائج فورية</h3>
+                    <p class="text-gray-400 text-sm leading-relaxed">
+                        تابعي جداول القياس اللحظية، وسجلي نتائج تجاربك في دفتر التجارب الخاص مع إمكانية التصدير والمراجعة.
+                    </p>
+                </div>
+                <div class="glass-panel p-6 rounded-2xl border border-gray-800 hover:border-purple-500/40 transition">
+                    <div class="w-12 h-12 rounded-xl bg-purple-500/10 flex items-center justify-center text-purple-400 text-xl mb-4">
+                        <i class="fa-solid fa-graduation-cap"></i>
+                    </div>
+                    <h3 class="text-lg font-bold mb-2">منهجية علمية متكاملة</h3>
+                    <p class="text-gray-400 text-sm leading-relaxed">
+                        خطوات تعليمية واضحة تبدأ بالتوقع والملاحظة مروراً بالتفسير العلمي وانتهاءً بالتحديات التطبيقية.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 2: VIRTUAL LAB -->
+        <section id="tab-lab" class="hidden space-y-8 animate-fade">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 glass-panel p-6 rounded-2xl border border-gray-800">
+                <div>
+                    <span class="text-amber-400 text-xs font-bold uppercase tracking-wider">المختبر الافتراضي للبصريات الضوئية</span>
+                    <h2 class="text-2xl font-black mt-1">اختر التجربة الفيزيائية</h2>
+                </div>
+                <!-- Experiment Selector Tabs -->
+                <div class="flex flex-wrap gap-2">
+                    <button onclick="switchExp(1)" id="btn-exp-1" class="px-4 py-2 rounded-xl text-sm font-bold transition bg-amber-500 text-black shadow">انكسار الضوء</button>
+                    <button onclick="switchExp(2)" id="btn-exp-2" class="px-4 py-2 rounded-xl text-sm font-bold transition bg-gray-800 text-gray-300 hover:bg-gray-700">العدسات</button>
+                    <button onclick="switchExp(3)" id="btn-exp-3" class="px-4 py-2 rounded-xl text-sm font-bold transition bg-gray-800 text-gray-300 hover:bg-gray-700">المرايا الكروية</button>
+                    <button onclick="switchExp(4)" id="btn-exp-4" class="px-4 py-2 rounded-xl text-sm font-bold transition bg-gray-800 text-gray-300 hover:bg-gray-700">الاستضاءة</button>
+                    <button onclick="switchExp(5)" id="btn-exp-5" class="px-4 py-2 rounded-xl text-sm font-bold transition bg-gray-800 text-gray-300 hover:bg-gray-700">التداخل والحيود</button>
+                </div>
+            </div>
+
+            <!-- Experiment Workspace Grid -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <!-- Controls & Steps Column (Left/Right depending on RTL) -->
+                <div class="lg:col-span-1 space-y-6">
+                    <div class="glass-panel p-6 rounded-2xl border border-gray-800 space-y-6">
+                        <h3 id="exp-title" class="text-lg font-bold border-b border-gray-800 pb-3 flex items-center gap-2 text-amber-400">
+                            <i class="fa-solid fa-sliders"></i> لوحة التحكم والمتغيرات
+                        </h3>
+                        
+                        <!-- Dynamic Controls Container -->
+                        <div id="exp-controls" class="space-y-4">
+                            <!-- Injected via JS -->
+                        </div>
+
+                        <div class="pt-4 border-t border-gray-800 flex gap-3">
+                            <button onclick="resetCurrentExp()" class="flex-1 py-3 px-4 rounded-xl bg-gray-800 hover:bg-gray-700 text-sm font-bold transition flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-rotate-right"></i> إعادة تعيين
+                            </button>
+                            <button onclick="saveCurrentResult()" class="flex-1 py-3 px-4 rounded-xl bg-amber-500 hover:bg-amber-600 text-black text-sm font-extrabold transition flex items-center justify-center gap-2 shadow">
+                                <i class="fa-solid fa-bookmark"></i> حفظ في الدفتر
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Learning Steps Box -->
+                    <div class="glass-panel p-6 rounded-2xl border border-gray-800 space-y-4">
+                        <h4 class="font-bold text-sky-400 flex items-center gap-2">
+                            <i class="fa-solid fa-clipboard-question"></i> خطوات التعلم الإرشادية
+                        </h4>
+                        <div id="learning-steps" class="space-y-3 text-sm text-gray-300">
+                            <!-- Filled by JS -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Simulation Visual Canvas Column -->
+                <div class="lg:col-span-2 space-y-6">
+                    <div class="glass-panel p-4 rounded-2xl border border-gray-800 relative overflow-hidden flex flex-col items-center justify-center min-h-[420px]">
+                        <div class="absolute top-4 right-4 bg-black/50 backdrop-blur px-3 py-1 rounded-lg border border-white/10 text-xs text-gray-400 z-10" id="canvas-badge">
+                            محاكاة تفاعلية مباشرة
+                        </div>
+                        
+                        <!-- Canvas Element -->
+                        <canvas id="simCanvas" width="700" height="400" class="w-full h-auto max-w-full rounded-xl bg-[#060911] border border-gray-800 shadow-inner"></canvas>
+
+                        <!-- Live Calculations Display Bar -->
+                        <div id="live-results" class="w-full mt-4 grid grid-cols-2 sm:grid-cols-3 gap-3">
+                            <!-- Filled by JS -->
+                        </div>
+                    </div>
+
+                    <!-- Scientific Explanation Box -->
+                    <div class="glass-panel p-6 rounded-2xl border border-gray-800 space-y-3">
+                        <h4 class="font-bold text-amber-400 flex items-center gap-2">
+                            <i class="fa-solid fa-book-open"></i> التفسير العلمي والقانون المستخدم
+                        </h4>
+                        <p id="exp-explanation" class="text-gray-300 text-sm leading-relaxed">
+                            <!-- Filled by JS -->
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 3: LAWS LIBRARY -->
+        <section id="tab-laws" class="hidden space-y-8 animate-fade">
+            <div class="glass-panel p-8 rounded-2xl border border-gray-800">
+                <span class="text-amber-400 text-xs font-bold uppercase tracking-wider">مرجع القوانين الفيزيائية</span>
+                <h2 class="text-3xl font-black mt-1 mb-4">مكتبة القوانين الضوئية</h2>
+                <p class="text-gray-300 text-sm max-w-2xl">
+                    قائمة شاملة بأهم القوانين والرياضيات الفيزيائية الخاصة بالضوء والبصريات المقررة في المنهج السعودي، مع تعريف الرموز ووحدات القياس.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6" id="laws-container">
+                <!-- Filled via JS -->
+            </div>
+        </section>
+
+        <!-- TAB 4: NOTEBOOK -->
+        <section id="tab-notebook" class="hidden space-y-8 animate-fade">
+            <div class="glass-panel p-8 rounded-2xl border border-gray-800 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                    <span class="text-amber-400 text-xs font-bold uppercase tracking-wider">سجل القياسات والنتائج</span>
+                    <h2 class="text-3xl font-black mt-1">دفتر التجارب الافتراضي</h2>
+                </div>
+                <div class="flex gap-3">
+                    <button onclick="exportNotebook()" class="px-5 py-2.5 rounded-xl bg-sky-500 hover:bg-sky-600 text-black font-extrabold text-sm transition shadow flex items-center gap-2">
+                        <i class="fa-solid fa-file-arrow-down"></i> تصدير البيانات (CSV)
+                    </button>
+                    <button onclick="clearNotebook()" class="px-5 py-2.5 rounded-xl bg-rose-500/20 text-rose-400 border border-rose-500/30 hover:bg-rose-500/30 font-bold text-sm transition flex items-center gap-2">
+                        <i class="fa-solid fa-trash-can"></i> تفريغ الدفتر
+                    </button>
+                </div>
+            </div>
+
+            <div class="glass-panel rounded-2xl border border-gray-800 overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-right border-collapse">
+                        <thead>
+                            <tr class="border-b border-gray-800 bg-black/40 text-xs text-gray-400 uppercase tracking-wider">
+                                <th class="p-4">التجربة</th>
+                                <th class="p-4">المدخلات الأساسية</th>
+                                <th class="p-4">النتائج المحسوبة</th>
+                                <th class="p-4">الوقت</th>
+                            </tr>
+                        </thead>
+                        <tbody id="notebook-table-body" class="divide-y divide-gray-800/50 text-sm">
+                            <tr>
+                                <td colspan="4" class="p-8 text-center text-gray-500">لا توجد نتائج مسجلة حتى الآن. قومي بإجراء التجارب واضغطي على "حفظ في الدفتر".</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 5: REFERENCES -->
+        <section id="tab-references" class="hidden space-y-8 animate-fade">
+            <div class="glass-panel p-8 rounded-2xl border border-gray-800">
+                <span class="text-amber-400 text-xs font-bold uppercase tracking-wider">المصادر والمراجع المعتمدة</span>
+                <h2 class="text-3xl font-black mt-1 mb-4">المراجع العلمية الرسمية</h2>
+                <p class="text-gray-300 text-sm max-w-2xl">
+                    يستند المحتوى العلمي والمحاكاة في مرصد الفوتون إلى المراجع والمقررات الوزارية الرسمية في المملكة العربية السعودية.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="glass-panel p-6 rounded-2xl border border-gray-800 space-y-3">
+                    <div class="w-10 h-10 rounded-xl bg-amber-500/10 flex items-center justify-center text-amber-400">
+                        <i class="fa-solid fa-book"></i>
+                    </div>
+                    <h3 class="font-bold text-lg">كتاب الفيزياء - الصف الثالث الثانوي</h3>
+                    <p class="text-gray-400 text-sm leading-relaxed">
+                        المنهج السعودي المعتمد - الفصل الدراسي الخاص بفيزياء الضوء والبصريات (الاستضاءة، الانعكاس، المرايا، العدسات، التداخل والحيود).
+                    </p>
+                </div>
+                <div class="glass-panel p-6 rounded-2xl border border-gray-800 space-y-3">
+                    <div class="w-10 h-10 rounded-xl bg-sky-500/10 flex items-center justify-center text-sky-400">
+                        <i class="fa-solid fa-globe"></i>
+                    </div>
+                    <h3 class="font-bold text-lg">منصة عين التعليمية وبوابة وزارة التعليم</h3>
+                    <p class="text-gray-400 text-sm leading-relaxed">
+                        التحقق من المصطلحات العلمية، الأشكال التوضيحية، والتعاريف المعتمدة في مقررات المرحلة الثانوية نظام المسارات.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="glass-panel mt-16 border-t border-gray-800 py-8">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-4 text-center md:text-right">
+            <div>
+                <p class="text-sm font-bold text-gray-300">مرصد الفوتون © 2026 — المختبر الافتراضي للفيزياء الضوئية</p>
+                <p class="text-xs text-gray-500 mt-1">جميع الحقوق محفوظة ومطورة لأغراض التعليم والمحاكاة التفاعلية.</p>
+            </div>
+            <div class="px-5 py-2.5 rounded-2xl bg-gradient-to-r from-amber-500/10 to-sky-500/10 border border-amber-500/20 text-xs text-amber-300 font-semibold shadow-sm">
+                إعداد المهندسة: غزلان المشعوف | الصف: الثالث الثانوي (3/8) | العام: 2026م
+            </div>
+        </div>
+    </footer>
+
+    <!-- JavaScript Application Logic -->
+    <script>
+        // State Management
+        let currentTab = 'home';
+        let currentExpId = 1;
+        let notebookData = [];
+
+        // Experiment Inputs State
+        let expState = {
+            1: { n1: 1.0, n2: 1.5, angle: 45 }, // Refraction
+            2: { type: 'convex', f: 50, do: 120, ho: 40 }, // Lenses
+            3: { type: 'concave', f: 40, do: 90 }, // Mirrors
+            4: { power: 2000, distance: 2.0 }, // Illumination
+            5: { wavelength: 550, d: 0.5, L: 2.0 } // Interference
+        };
+
+        function switchTab(tabId) {
+            currentTab = tabId;
+            ['home', 'lab', 'laws', 'notebook', 'references'].forEach(t => {
+                document.getElementById(`tab-${t}`).classList.add('hidden');
+                const navBtn = document.getElementById(`nav-${t}`);
+                if (navBtn) {
+                    navBtn.className = "px-4 py-2 rounded-xl transition-all text-gray-300 hover:text-white hover:bg-white/5";
+                }
+            });
+
+            document.getElementById(`tab-${tabId}`).classList.remove('hidden');
+            const activeNav = document.getElementById(`nav-${tabId}`);
+            if (activeNav) {
+                activeNav.className = "px-4 py-2 rounded-xl transition-all text-amber-400 bg-amber-500/10";
+            }
+
+            if (tabId === 'lab') {
+                renderExperiment();
+            } else if (tabId === 'laws') {
+                renderLaws();
+            }
+        }
+
+        function toggleMobileMenu() {
+            const menu = document.getElementById('mobile-menu');
+            menu.classList.toggle('hidden');
+        }
+
+        function switchExp(id) {
+            currentExpId = id;
+            for (let i = 1; i <= 5; i++) {
+                const btn = document.getElementById(`btn-exp-${i}`);
+                if (i === id) {
+                    btn.className = "px-4 py-2 rounded-xl text-sm font-bold transition bg-amber-500 text-black shadow";
+                } else {
+                    btn.className = "px-4 py-2 rounded-xl text-sm font-bold transition bg-gray-800 text-gray-300 hover:bg-gray-700";
+                }
+            }
+            renderExperiment();
+        }
+
+        function resetCurrentExp() {
+            if (currentExpId === 1) expState[1] = { n1: 1.0, n2: 1.5, angle: 45 };
+            if (currentExpId === 2) expState[2] = { type: 'convex', f: 50, do: 120, ho: 40 };
+            if (currentExpId === 3) expState[3] = { type: 'concave', f: 40, do: 90 };
+            if (currentExpId === 4) expState[4] = { power: 2000, distance: 2.0 };
+            if (currentExpId === 5) expState[5] = { wavelength: 550, d: 0.5, L: 2.0 };
+            renderExperiment();
+        }
+
+        // Render Experiment Controls, Steps & Canvas
+        function renderExperiment() {
+            const controlsDiv = document.getElementById('exp-controls');
+            const stepsDiv = document.getElementById('learning-steps');
+            const explDiv = document.getElementById('exp-explanation');
+            const titleDiv = document.getElementById('exp-title');
+
+            controlsDiv.innerHTML = '';
+            stepsDiv.innerHTML = '';
+
+            if (currentExpId === 1) {
+                titleDiv.innerHTML = `<i class="fa-solid fa-sliders"></i> لوحة التحكم - انكسار الضوء (قانون سنل)`;
+                explDiv.innerHTML = `عند انتقال الشعاع الضوئي من وسط إلى وسط آخر يختلف عنه في معامل الانكسار ($n$)، فإن مساره ينحرف. إذا انتقل من وسط أقل انكساراً إلى وسط أكبر انكساراً ($n_2 > n_1$)، فإن الشعاع ينحرف مقترباً من العمود المقام وفق قانون سنل: $n_1 \\sin(\\theta_1) = n_2 \\sin(\\theta_2)$.`;
+                
+                stepsDiv.innerHTML = `
+                    <div class="p-3 rounded-xl bg-black/30 border border-gray-800"><span class="text-amber-400 font-bold">1. قبل التجربة:</span> ماذا تتوقع أن يحدث لزاوية الانكسار إذا زاد معامل انكسار الوسط الثاني ($n_2$)؟</div>
+                    <div class="p-3 rounded-xl bg-black/30 border border-gray-800"><span class="text-sky-400 font-bold">2. نفّذي التجربة:</span> قومي بتغيير زاوية السقوط أو المعاملات ولاحظي تغير مسار الشعاع.</div>
+                    <div class="p-3 rounded-xl bg-black/30 border border-gray-800"><span class="text-purple-400 font-bold">3. الملاحظة:</span> هل يحدث انعكاس كلي داخلي عندما ينتقل الضوء من وسط أكبر إلى أقل انكساراً بزاوية أكبر من الزاوية الحرجة؟</div>
+                `;
+
+                controlsDiv.innerHTML = `
+                    <div>
+                        <label class="text-xs text-gray-400 flex justify-between mb-1"><span>معامل انكسار الوسط الأول ($n_1$)</span><span id="val-n1" class="text-amber-400 font-bold">${expState[1].n1}</span></label>
+                        <input type="range" min="1.0" max="2.0" step="0.05" value="${expState[1].n1}" oninput="updateExp1('n1', this.value)" class="w-full">
+                    </div>
+                    <div>
+                        <label class="text-xs text-gray-400 flex justify-between mb-1"><span>معامل انكسار الوسط الثاني ($n_2$)</span><span id="val-n2" class="text-amber-400 font-bold">${expState[1].n2}</span></label>
+                        <input type="range" min="1.0" max="2.5" step="0.05" value="${expState[1].n2}" oninput="updateExp1('n2', this.value)" class="w-full">
+                    </div>
+                    <div>
+                        <label class="text-xs text-gray-400 flex justify-between mb-1"><span>زاوية السقوط ($\\theta_1$)</span><span id="val-angle" class="text-amber-400 font-bold">${expState[1].angle}°</span></label>
+                        <input type="range" min="10" max="85" step="1" value="${expState[1].angle}" oninput="updateExp1('angle', this.value)" class="w-full">
+                    </div>
+                `;
+            } else if (currentExpId === 2) {
+                titleDiv.innerHTML = `<i class="fa-solid fa-sliders"></i> لوحة التحكم - العدسات الرقيقة`;
+                explDiv.innerHTML = `تستخدم معادلة العدسات الرقيقة لتحديد موضع الصورة الناتجة: $\\frac{1}{f} = \\frac{1}{d_o} + \\frac{1}{d_i}$، ويحسب التكالبر عبر العلاقة: $m = \\frac{h_i}{h_o} = -\\frac{d_i}{d_o}$.`;
+                
+                stepsDiv.innerHTML = `
+                    <div class="p-3 rounded-xl bg-black/30 border border-gray-800"><span class="text-amber-400 font-bold">1. قبل التجربة:</span> ماذا تتوقعين لصفات الصورة عندما يكون الجسم على بعد أكبر من ضعف البعد البؤري ($2f$)؟</div>
+                    <div class="p-3 rounded-xl bg-black/30 border border-gray-800"><span class="text-sky-400 font-bold">2. نفّذي التجربة:</span> عدلي بعد الجسم ($d_o$) أو البعد البؤري ($f$) ولاحظي تكوين الصورة.</div>
+                `;
+
+                controlsDiv.innerHTML = `
+                    <div>
+                        <label class="text-xs text-gray-400 mb-1 block">نوع العدسة</label>
+                        <select onchange="updateExp2('type', this.value)" class="w-full bg-[#0b0f19] border border-gray-700 rounded-xl p-2.5 text-sm">
+                            <option value="convex" ${expState[2].type==='convex'?'selected':''}>محدبة (مجمّعة)</option>
+                            <option value="concave" ${expState[2].type==='concave'?'selected':''}>مقعرة (مفرّقة)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="text-xs text-gray-400 flex justify-between mb-1"><span>البعد البؤري ($f$)</span><span class="text-amber-400 font-bold">${expState[2].f} سم</span></label>
+                        <input type="range" min="20" max="100" step="5" value="${expState[2].f}" oninput="updateExp2('f', this.value)" class="w-full">
+                    </div>
+                    <div>
+                        <label class="text-xs text-gray-400 flex justify-between mb-1"><span>بعد الجسم ($d_o$)</span><span class="text-amber-400 font-bold">${expState[2].do} سم</span></label>
+                        <input type="range" min="30" max="250" step="5" value="${expState[2].do}" oninput="updateExp2('do', this.value)" class="w-full">
+                    </div>
+                `;
+            } else if (currentExpId === 3) {
+                titleDiv.innerHTML = `<i class="fa-solid fa-sliders"></i> لوحة التحكم - المرايا الكروية`;
+                explDiv.innerHTML = `تخضع المرايا الكروية (المقعرة والمحدبة) لمعادلة المرآة نفسها: $\\frac{1}{f} = \\frac{1}{d_o} + \\frac{1}{d_i}$ مع مراعاة اصطلاح الإشارات للمرايا المقعرة والمحدبة.`;
+                
+                stepsDiv.innerHTML = `
+                    <div class="p-3 rounded-xl bg-black/30 border border-gray-800"><span class="text-amber-400 font-bold">1. قبل التجربة:</span> كيف تختلف صفات الصورة في المرآة المحدبة عن المرآة المقعرة؟</div>
+                    <div class="p-3 rounded-xl bg-black/30 border border-gray-800"><span class="text-sky-400 font-bold">2. نفّذي التجربة:</span> حركي الجسم أمام المرآة الكروية لمشاهدة الأشعة المنعكسة.</div>
+                `;
+
+                controlsDiv.innerHTML = `
+                    <div>
+                        <label class="text-xs text-gray-400 mb-1 block">نوع المرآة</label>
+                        <select onchange="updateExp3('type', this.value)" class="w-full bg-[#0b0f19] border border-gray-700 rounded-xl p-2.5 text-sm">
+                            <option value="concave" ${expState[3].type==='concave'?'selected':''}>مرآة مقعرة (مجمّعة)</option>
+                            <option value="convex" ${expState[3].type==='convex'?'selected':''}>مرآة محدبة (مفرّقة)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="text-xs text-gray-400 flex justify-between mb-1"><span>البعد البؤري ($f$)</span><span class="text-amber-400 font-bold">${expState[3].f} سم</span></label>
+                        <input type="range" min="20" max="80" step="5" value="${expState[3].f}" oninput="updateExp3('f', this.value)" class="w-full">
+                    </div>
+                    <div>
+                        <label class="text-xs text-gray-400 flex justify-between mb-1"><span>بعد الجسم ($d_o$)</span><span class="text-amber-400 font-bold">${expState[3].do} سم</span></label>
+                        <input type="range" min="20" max="200" step="5" value="${expState[3].do}" oninput="updateExp3('do', this.value)" class="w-full">
+                    </div>
+                `;
+            } else if (currentExpId === 4) {
+                titleDiv.innerHTML = `<i class="fa-solid fa-sliders"></i> لوحة التحكم - الاستضاءة`;
+                explDiv.innerHTML = `تنص قانون التربيع العكسي في الاستضاءة على أن الاستضاءة ($E$) تتناسب عكسياً مع مربع البعد عن المصدر الضوئي: $E = \\frac{P}{4\\pi r^2}$.`;
+                
+                stepsDiv.innerHTML = `
+                    <div class="p-3 rounded-xl bg-black/30 border border-gray-800"><span class="text-amber-400 font-bold">1. قبل التجربة:</span> ماذا تتوقع أن يحدث لشدة الاستضاءة إذا ضاعفنا المسافة بين السطح والمصدر الضوئي؟</div>
+                    <div class="p-3 rounded-xl bg-black/30 border border-gray-800"><span class="text-sky-400 font-bold">2. نفّذي التجربة:</span> غيري التدفق الضوئي والمسافة ولاحظي قيمة الاستضاءة باللوكس.</div>
+                `;
+
+                controlsDiv.innerHTML = `
+                    <div>
+                        <label class="text-xs text-gray-400 flex justify-between mb-1"><span>التدفق الضوئي ($P$) [لومن]</span><span class="text-amber-400 font-bold">${expState[4].power} lm</span></label>
+                        <input type="range" min="500" max="5000" step="100" value="${expState[4].power}" oninput="updateExp4('power', this.value)" class="w-full">
+                    </div>
+                    <div>
+                        <label class="text-xs text-gray-400 flex justify-between mb-1"><span>المسافة ($r$) [متر]</span><span class="text-amber-400 font-bold">${expState[4].distance} م</span></label>
+                        <input type="range" min="0.5" max="5.0" step="0.1" value="${expState[4].distance}" oninput="updateExp4('distance', this.value)" class="w-full">
+                    </div>
+                `;
+            } else if (currentExpId === 5) {
+                titleDiv.innerHTML = `<i class="fa-solid fa-sliders"></i> لوحة التحكم - التداخل والحيود`;
+                explDiv.innerHTML = `تجربة الشق المزدوج ليونغ توضح الطبيعة الموجية للضوء، حيث تحسب المسافة بين الأهداب الضوئية عبر العلاقة: $\\lambda = \\frac{x \\cdot d}{L}$.`;
+                
+                stepsDiv.innerHTML = `
+                    <div class="p-3 rounded-xl bg-black/30 border border-gray-800"><span class="text-amber-400 font-bold">1. قبل التجربة:</span> كيف يؤثر زيادة الطول الموجي للضوء في مسافة الفاصل بين الأهداب المتداخلة؟</div>
+                    <div class="p-3 rounded-xl bg-black/30 border border-gray-800"><span class="text-sky-400 font-bold">2. نفّذي التجربة:</span> عدلي الطول الموجي أو المسافة بين الشقين ولاحظي التغير في النمط.</div>
+                `;
+
+                controlsDiv.innerHTML = `
+                    <div>
+                        <label class="text-xs text-gray-400 flex justify-between mb-1"><span>الطول الموجي ($\\lambda$) [نانومتر]</span><span class="text-amber-400 font-bold">${expState[5].wavelength} نانومتر</span></label>
+                        <input type="range" min="400" max="750" step="10" value="${expState[5].wavelength}" oninput="updateExp5('wavelength', this.value)" class="w-full">
+                    </div>
+                    <div>
+                        <label class="text-xs text-gray-400 flex justify-between mb-1"><span>المسافة بين الشقين ($d$) [مم]</span><span class="text-amber-400 font-bold">${expState[5].d} مم</span></label>
+                        <input type="range" min="0.1" max="1.5" step="0.05" value="${expState[5].d}" oninput="updateExp5('d', this.value)" class="w-full">
+                    </div>
+                `;
+            }
+
+            drawSimulation();
+        }
+
+        // Input Updaters
+        function updateExp1(param, val) { expState[1][param] = parseFloat(val); if(param!=='angle')document.getElementById(`val-${param}`).innerText = val; document.getElementById('val-angle').innerText = expState[1].angle + '°'; drawSimulation(); }
+        function updateExp2(param, val) { expState[2][param] = param==='type'?val:parseFloat(val); drawSimulation(); }
+        function updateExp3(param, val) { expState[3][param] = param==='type'?val:parseFloat(val); drawSimulation(); }
+        function updateExp4(param, val) { expState[4][param] = parseFloat(val); drawSimulation(); }
+        function updateExp5(param, val) { expState[5][param] = parseFloat(val); drawSimulation(); }
+
+        // Core Simulation Canvas Drawing & Calculations
+        function drawSimulation() {
+            const canvas = document.getElementById('simCanvas');
+            const ctx = canvas.getContext('2d');
+            const liveRes = document.getElementById('live-results');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            const w = canvas.width;
+            const h = canvas.height;
+            const cx = w / 2;
+            const cy = h / 2;
+
+            if (currentExpId === 1) {
+                // Refraction Simulation
+                const n1 = expState[1].n1;
+                const n2 = expState[1].n2;
+                const theta1Deg = expState[1].angle;
+                const theta1Rad = (theta1Deg * Math.PI) / 180;
+
+                let sinTheta2 = (n1 * Math.sin(theta1Rad)) / n2;
+                let isTIR = sinTheta2 > 1.0;
+                let theta2Deg = isTIR ? 'انعكاس كلي' : ((Math.asin(sinTheta2) * 180) / Math.PI).toFixed(1) + '°';
+
+                // Draw Medium Divider
+                ctx.fillStyle = '#0f172a';
+                ctx.fillRect(0, cy, w, cy);
+                ctx.fillStyle = 'rgba(56, 189, 248, 0.05)';
+                ctx.fillRect(0, 0, w, cy);
+
+                // Normal Line
+                ctx.strokeStyle = 'rgba(255,255,255,0.2)';
+                ctx.setLineDash([4, 4]);
+                ctx.beginPath();
+                ctx.moveTo(cx, 20);
+                ctx.lineTo(cx, h - 20);
+                ctx.stroke();
+                ctx.setLineDash([]);
+
+                // Incident Ray
+                const rayLen = 160;
+                const startX = cx - rayLen * Math.sin(theta1Rad);
+                const startY = cy - rayLen * Math.cos(theta1Rad);
+
+                ctx.strokeStyle = '#f59e0b';
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.moveTo(startX, startY);
+                ctx.lineTo(cx, cy);
+                ctx.stroke();
+
+                // Reflected / Refracted Ray
+                if (isTIR) {
+                    ctx.strokeStyle = '#ef4444';
+                    const refX = cx + rayLen * Math.sin(theta1Rad);
+                    const refY = cy - rayLen * Math.cos(theta1Rad);
+                    ctx.beginPath();
+                    ctx.moveTo(cx, cy);
+                    ctx.lineTo(refX, refY);
+                    ctx.stroke();
+                } else {
+                    const theta2Rad = Math.asin(sinTheta2);
+                    ctx.strokeStyle = '#38bdf8';
+                    const endX = cx + rayLen * Math.sin(theta2Rad);
+                    const endY = cy + rayLen * Math.cos(theta2Rad);
+                    ctx.beginPath();
+                    ctx.moveTo(cx, cy);
+                    ctx.lineTo(endX, endY);
+                    ctx.stroke();
+                }
+
+                liveRes.innerHTML = `
+                    <div class="glass-panel p-3 rounded-xl border border-gray-800 text-center"><span class="text-xs text-gray-400 block">الوسط الأول ($n_1$)</span><span class="font-bold text-amber-400">${n1}</span></div>
+                    <div class="glass-panel p-3 rounded-xl border border-gray-800 text-center"><span class="text-xs text-gray-400 block">الوسط الثاني ($n_2$)</span><span class="font-bold text-sky-400">${n2}</span></div>
+                    <div class="glass-panel p-3 rounded-xl border border-gray-800 text-center"><span class="text-xs text-gray-400 block">زاوية الانكسار ($\\theta_2$)</span><span class="font-bold text-emerald-400">${theta2Deg}</span></div>
+                `;
+            } else if (currentExpId === 2) {
+                // Lenses Simulation
+                const f = expState[2].f;
+                const do_val = expState[2].do;
+                let di = (f * do_val) / (do_val - f);
+                let m = -di / do_val;
+                let imgType = do_val === f ? 'عند اللانهاية' : (di > 0 ? 'حقيقية ومقلوبة' : 'خيالية ومعتدلة');
+
+                // Draw Optical Axis
+                ctx.strokeStyle = 'rgba(255,255,255,0.2)';
+                ctx.lineWidth = 1.5;
+                ctx.beginPath();
+                ctx.moveTo(20, cy);
+                ctx.lineTo(w - 20, cy);
+                ctx.stroke();
+
+                // Draw Lens
+                ctx.strokeStyle = '#38bdf8';
+                ctx.lineWidth = 4;
+                ctx.beginPath();
+                ctx.arc(cx, cy - 40, 80, Math.PI/3, 2*Math.PI/3);
+                ctx.stroke();
+
+                // Draw Object
+                const objX = cx - (do_val * 0.8);
+                ctx.fillStyle = '#f59e0b';
+                ctx.fillRect(objX - 4, cy - 60, 8, 60);
+
+                liveRes.innerHTML = `
+                    <div class="glass-panel p-3 rounded-xl border border-gray-800 text-center"><span class="text-xs text-gray-400 block">بعد الصورة ($d_i$)</span><span class="font-bold text-amber-400">${do_val===f?'غير مهيأة':di.toFixed(1) + ' سم'}</span></div>
+                    <div class="glass-panel p-3 rounded-xl border border-gray-800 text-center"><span class="text-xs text-gray-400 block">التكبير ($m$)</span><span class="font-bold text-sky-400">${do_val===f?'-':m.toFixed(2)}</span></div>
+                    <div class="glass-panel p-3 rounded-xl border border-gray-800 text-center"><span class="text-xs text-gray-400 block">صفات الصورة</span><span class="font-bold text-emerald-400">${imgType}</span></div>
+                `;
+            } else if (currentExpId === 3) {
+                // Mirrors Simulation
+                const f = expState[3].f;
+                const do_val = expState[3].do;
+                let di = (f * do_val) / (do_val - f);
+                let m = -di / do_val;
+                let mirrorType = expState[3].type === 'concave' ? 'مقعرة' : 'محدبة';
+
+                ctx.strokeStyle = 'rgba(255,255,255,0.2)';
+                ctx.lineWidth = 1.5;
+                ctx.beginPath();
+                ctx.moveTo(20, cy);
+                ctx.lineTo(w - 20, cy);
+                ctx.stroke();
+
+                // Draw Mirror Curve
+                ctx.strokeStyle = '#f59e0b';
+                ctx.lineWidth = 4;
+                ctx.beginPath();
+                ctx.arc(cx + 40, cy, 70, Math.PI*0.7, Math.PI*1.3);
+                ctx.stroke();
+
+                liveRes.innerHTML = `
+                    <div class="glass-panel p-3 rounded-xl border border-gray-800 text-center"><span class="text-xs text-gray-400 block">نوع المرآة</span><span class="font-bold text-amber-400">${mirrorType}</span></div>
+                    <div class="glass-panel p-3 rounded-xl border border-gray-800 text-center"><span class="text-xs text-gray-400 block">بعد الصورة ($d_i$)</span><span class="font-bold text-sky-400">${di.toFixed(1)} سم</span></div>
+                    <div class="glass-panel p-3 rounded-xl border border-gray-800 text-center"><span class="text-xs text-gray-400 block">التكبير ($m$)</span><span class="font-bold text-emerald-400">${m.toFixed(2)}</span></div>
+                `;
+            } else if (currentExpId === 4) {
+                // Illumination Simulation
+                const P = expState[4].power;
+                const r = expState[4].distance;
+                const E = P / (4 * Math.PI * r * r);
+
+                // Draw Light Source Visual
+                ctx.fillStyle = '#f59e0b';
+                ctx.beginPath();
+                ctx.arc(cx, cy, 35, 0, 2 * Math.PI);
+                ctx.fill();
+
+                liveRes.innerHTML = `
+                    <div class="glass-panel p-3 rounded-xl border border-gray-800 text-center"><span class="text-xs text-gray-400 block">التدفق الضوئي ($P$)</span><span class="font-bold text-amber-400">${P} لومن</span></div>
+                    <div class="glass-panel p-3 rounded-xl border border-gray-800 text-center"><span class="text-xs text-gray-400 block">المسافة ($r$)</span><span class="font-bold text-sky-400">${r} م</span></div>
+                    <div class="glass-panel p-3 rounded-xl border border-gray-800 text-center"><span class="text-xs text-gray-400 block">شدة الاستضاءة ($E$)</span><span class="font-bold text-emerald-400">${E.toFixed(1)} لوكس (lx)</span></div>
+                `;
+            } else if (currentExpId === 5) {
+                // Interference Simulation
+                const lam = expState[5].wavelength;
+                const d = expState[5].d;
+                const L = expState[5].L;
+                const fringeDist = (lam * 1e-9 * L * 1000) / (d * 1e-3); // mm approx
+
+                // Draw Interference Pattern Bands
+                for (let i = -5; i <= 5; i++) {
+                    let alpha = Math.max(0.1, 1 - Math.abs(i) * 0.15);
+                    ctx.fillStyle = `rgba(56, 189, 248, ${alpha})`;
+                    ctx.fillRect(cx + i * 25 - 4, 80, 8, 240);
+                }
+
+                liveRes.innerHTML = `
+                    <div class="glass-panel p-3 rounded-xl border border-gray-800 text-center"><span class="text-xs text-gray-400 block">الطول الموجي ($\\lambda$)</span><span class="font-bold text-amber-400">${lam} نانومتر</span></div>
+                    <div class="glass-panel p-3 rounded-xl border border-gray-800 text-center"><span class="text-xs text-gray-400 block">المسافة بين الشقين</span><span class="font-bold text-sky-400">${d} مم</span></div>
+                    <div class="glass-panel p-3 rounded-xl border border-gray-800 text-center"><span class="text-xs text-gray-400 block">الفاصل بين الأهداب</span><span class="font-bold text-emerald-400">${fringeDist.toFixed(2)} مم</span></div>
+                `;
+            }
+        }
+
+        // Laws Library Data & Render
+        const lawsData = [
+            { name: "قانون سنل في الانكسار", formula: "n₁ sin(θ₁) = n₂ sin(θ₂)", desc: "ي ربط زوايا السقوط والانكسار لمعاملات انكسار الوسطين.", units: "بدون وحدة (زوايا ومعاملات انكسار)" },
+            { name: "معادلة العدسات والمرايا الرقيقة", formula: "1/f = 1/dₒ + 1/dᵢ", desc: "تحدد العلاقة الرياضية بين البعد البؤري وبعد الجسم وبعد الصورة.", units: "سم أو متر (cm / m)" },
+            { name: "علاقة التكبير", formula: "m = hᵢ/hₒ = −dᵢ/dₒ", desc: "تحسب نسبة طول الصورة إلى طول الجسم وتحدد خصائصها.", units: "بدون وحدة" },
+            { name: "قانون الاستضاءة (التربيع العكسي)", formula: "E = P / (4πr²)", desc: "يحسب شدة الاستضاءة السطحية الناتجة عن مصدر ضوئي نقطي.", units: "لوكس (lx)" },
+            { name: "تجربة الشق المزدوج ليونغ", formula: "λ = (x · d) / L", desc: "لحساب الطول الموجي للضوء باستخدام تداخل الأهداب الضوئية.", units: "نانومتر (nm) أو متر" }
+        ];
+
+        function renderLaws() {
+            const container = document.getElementById('laws-container');
+            container.innerHTML = lawsData.map(law => `
+                <div class="glass-panel p-6 rounded-2xl border border-gray-800 space-y-3">
+                    <h3 class="font-bold text-lg text-amber-400">${law.name}</h3>
+                    <div class="p-3 rounded-xl bg-black/40 border border-gray-800 font-mono text-sky-300 text-center text-lg">${law.formula}</div>
+                    <p class="text-gray-300 text-sm">${law.desc}</p>
+                    <p class="text-xs text-gray-400"><strong>وحدات القياس:</strong> ${law.units}</p>
+                </div>
+            `).join('');
+        }
+
+        // Notebook Saving & Exporting
+        function saveCurrentResult() {
+            const expNames = {1: "انكسار الضوء", 2: "العدسات الرقيقة", 3: "المرايا الكروية", 4: "الاستضاءة", 5: "التداخل والحيود"};
+            let entry = {
+                exp: expNames[currentExpId],
+                inputs: JSON.stringify(expState[currentExpId]),
+                time: new Date().toLocaleTimeString('ar-SA')
+            };
+            notebookData.push(entry);
+            updateNotebookTable();
+            alert("تم حفظ نتائج التجربة بنجاح في دفتر التجارب!");
+        }
+
+        function updateNotebookTable() {
+            const tbody = document.getElementById('notebook-table-body');
+            if (notebookData.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="4" class="p-8 text-center text-gray-500">لا توجد نتائج مسجلة حتى الآن.</td></tr>`;
+                return;
+            }
+            tbody.innerHTML = notebookData.map((item, idx) => `
+                <tr class="hover:bg-white/5 transition">
+                    <td class="p-4 font-bold text-amber-400">${item.exp}</td>
+                    <td class="p-4 font-mono text-xs text-gray-300">${item.inputs}</td>
+                    <td class="p-4 text-sky-400">محسوبة ومعتمدة</td>
+                    <td class="p-4 text-gray-400 text-xs">${item.time}</td>
+                </tr>
+            `).join('');
+        }
+
+        function clearNotebook() {
+            notebookData = [];
+            updateNotebookTable();
+        }
+
+        function exportNotebook() {
+            if (notebookData.length === 0) { alert("دفتر التجارب فارغ!"); return; }
+            let csv = "التجربة,المدخلات,الوقت\n" + notebookData.map(e => `"${e.exp}","${e.inputs}","${e.time}"`).join("\n");
+            let blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            let url = URL.createObjectURL(blob);
+            let a = document.createElement('a');
+            a.href = url;
+            a.download = 'photon-observatory-notebook.csv';
+            a.click();
+        }
+
+        // Initialize on load
+        window.onload = () => {
+            renderExperiment();
+        };
+    </script>
+</body>
+</html>
