@@ -126,17 +126,25 @@ function drawIlluminance(ctx, canvas) {
 // 5. تجربة التداخل والحيود (شقي يونغ)
 function drawInterference(ctx, canvas) {
     const w = canvas.width;
-     حاجز الشقين والاهداب
+    const h = canvas.height;
+    ctx.clearRect(0, 0, w, h);
+    
+    // حاجز الشقين
     ctx.fillStyle = '#cbd5e1';
-    ctx.fillRect(100, 50, 10, canvas.height - 100);
+    ctx.fillRect(100, 50, 10, h - 100);
 
-    // أهداب التداخل على الشاشة
-    for (let i = 0; i < w; i += 15) {
-        ctx.strokeStyle = `rgba(56, 189, 248, ${Math.abs(Math.sin(i / 20))})`;
+    // حساب تباعد الأهداب بناءً على المدخلات
+    // wavelength و slitDistance يجب أن تكونا متغيرات مرتبطة بالأشرطة
+    const fringeSpacing = (wavelength * (h - 100)) / (slitDistance * 1000); 
+
+    for (let i = 0; i < 10; i++) {
+        let alpha = Math.abs(Math.sin(i * fringeSpacing / 20));
+        ctx.strokeStyle = `rgba(56, 189, 248, ${alpha})`;
         ctx.lineWidth = 3;
         ctx.beginPath();
-        ctx.moveTo(w - 80, 50);
-        ctx.lineTo(w - 80, canvas.height - 50);
+        ctx.moveTo(w - 80, 50 + i * fringeSpacing);
+        ctx.lineTo(w - 80, 50 + i * fringeSpacing + 20);
         ctx.stroke();
     }
 }
+
