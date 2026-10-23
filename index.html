@@ -401,35 +401,35 @@
 
             if (currentExpId === 1) {
                 titleDiv.innerHTML = `<i class="fa-solid fa-sliders"></i> لوحة التحكم - انكسار الضوء (قانون سنل)`;
-                explDiv.innerHTML = `عند انتقال الشعاع الضوئي من وسط إلى وسط آخر يختلف عنه في معامل الانكسار ($n$)، فإن مساره ينحرف. إذا انتقل من وسط أقل انكساراً إلى وسط أكبر انكساراً ($n_2 > n_1$)، فإن الشعاع ينحرف مقترباً من العمود المقام وفق قانون سنل: $n_1 \\sin(\\theta_1) = n_2 \\sin(\\theta_2)$.`;
+                explDiv.innerHTML = `عند انتقال الشعاع الضوئي من وسط إلى وسط آخر يختلف عنه في معامل الانكسار (n)، فإن مساره ينحرف. إذا انتقل من وسط أقل انكساراً إلى وسط أكبر انكساراً (n₂ > n₁)، فإن الشعاع ينحرف مقترباً من العمود المقام وفق قانون سنل: n₁ sin(θ₁) = n₂ sin(θ₂).`;
                 
                 stepsDiv.innerHTML = `
-                    <div class="p-3 rounded-xl bg-black/30 border border-gray-800"><span class="text-amber-400 font-bold">1. قبل التجربة:</span> ماذا تتوقع أن يحدث لزاوية الانكسار إذا زاد معامل انكسار الوسط الثاني ($n_2$)؟</div>
+                    <div class="p-3 rounded-xl bg-black/30 border border-gray-800"><span class="text-amber-400 font-bold">1. قبل التجربة:</span> ماذا تتوقع أن يحدث لزاوية الانكسار إذا زاد معامل انكسار الوسط الثاني (n₂)؟</div>
                     <div class="p-3 rounded-xl bg-black/30 border border-gray-800"><span class="text-sky-400 font-bold">2. نفّذي التجربة:</span> قومي بتغيير زاوية السقوط أو المعاملات ولاحظي تغير مسار الشعاع.</div>
                     <div class="p-3 rounded-xl bg-black/30 border border-gray-800"><span class="text-purple-400 font-bold">3. الملاحظة:</span> هل يحدث انعكاس كلي داخلي عندما ينتقل الضوء من وسط أكبر إلى أقل انكساراً بزاوية أكبر من الزاوية الحرجة؟</div>
                 `;
 
                 controlsDiv.innerHTML = `
                     <div>
-                        <label class="text-xs text-gray-400 flex justify-between mb-1"><span>معامل انكسار الوسط الأول ($n_1$)</span><span id="val-n1" class="text-amber-400 font-bold">${expState[1].n1}</span></label>
+                        <label class="text-xs text-gray-400 flex justify-between mb-1"><span>معامل انكسار الوسط الأول (n₁)</span><span id="val-n1" class="text-amber-400 font-bold">${expState[1].n1}</span></label>
                         <input type="range" min="1.0" max="2.0" step="0.05" value="${expState[1].n1}" oninput="updateExp1('n1', this.value)" class="w-full">
                     </div>
                     <div>
-                        <label class="text-xs text-gray-400 flex justify-between mb-1"><span>معامل انكسار الوسط الثاني ($n_2$)</span><span id="val-n2" class="text-amber-400 font-bold">${expState[1].n2}</span></label>
+                        <label class="text-xs text-gray-400 flex justify-between mb-1"><span>معامل انكسار الوسط الثاني (n₂)</span><span id="val-n2" class="text-amber-400 font-bold">${expState[1].n2}</span></label>
                         <input type="range" min="1.0" max="2.5" step="0.05" value="${expState[1].n2}" oninput="updateExp1('n2', this.value)" class="w-full">
                     </div>
                     <div>
-                        <label class="text-xs text-gray-400 flex justify-between mb-1"><span>زاوية السقوط ($\\theta_1$)</span><span id="val-angle" class="text-amber-400 font-bold">${expState[1].angle}°</span></label>
+                        <label class="text-xs text-gray-400 flex justify-between mb-1"><span>زاوية السقوط (θ₁)</span><span id="val-angle" class="text-amber-400 font-bold">${expState[1].angle}°</span></label>
                         <input type="range" min="10" max="85" step="1" value="${expState[1].angle}" oninput="updateExp1('angle', this.value)" class="w-full">
                     </div>
                 `;
             } else if (currentExpId === 2) {
                 titleDiv.innerHTML = `<i class="fa-solid fa-sliders"></i> لوحة التحكم - العدسات الرقيقة`;
-                explDiv.innerHTML = `تستخدم معادلة العدسات الرقيقة لتحديد موضع الصورة الناتجة: $\\frac{1}{f} = \\frac{1}{d_o} + \\frac{1}{d_i}$، ويحسب التكبير عبر العلاقة: $m = \\frac{h_i}{h_o} = -\\frac{d_i}{d_o}$.`;
+                explDiv.innerHTML = `تستخدم معادلة العدسات الرقيقة لتحديد موضع الصورة الناتجة: 1/f = 1/dₒ + 1/dᵢ، ويحسب التكبير عبر العلاقة: m = hᵢ/hₒ = -dᵢ/dₒ.`;
                 
                 stepsDiv.innerHTML = `
-                    <div class="p-3 rounded-xl bg-black/30 border border-gray-800"><span class="text-amber-400 font-bold">1. قبل التجربة:</span> ماذا تتوقعي لصفات الصورة عندما يكون الجسم على بعد أكبر من ضعف البعد البؤري ($2f$)؟</div>
-                    <div class="p-3 rounded-xl bg-black/30 border border-gray-800"><span class="text-sky-400 font-bold">2. نفّذي التجربة:</span> عدلي بعد الجسم ($d_o$) أو البعد البؤري ($f$) ولاحظي تكوين الصورة.</div>
+                    <div class="p-3 rounded-xl bg-black/30 border border-gray-800"><span class="text-amber-400 font-bold">1. قبل التجربة:</span> ماذا تتوقعي لصفات الصورة عندما يكون الجسم على بعد أكبر من ضعف البعد البؤري (2f)؟</div>
+                    <div class="p-3 rounded-xl bg-black/30 border border-gray-800"><span class="text-sky-400 font-bold">2. نفّذي التجربة:</span> عدلي بعد الجسم (dₒ) أو البعد البؤري (f) ولاحظي تكوين الصورة.</div>
                 `;
 
                 controlsDiv.innerHTML = `
@@ -441,17 +441,17 @@
                         </select>
                     </div>
                     <div>
-                        <label class="text-xs text-gray-400 flex justify-between mb-1"><span>البعد البؤري ($f$)</span><span class="text-amber-400 font-bold">${expState[2].f} سم</span></label>
+                        <label class="text-xs text-gray-400 flex justify-between mb-1"><span>البعد البؤري (f)</span><span id="val-exp2-f" class="text-amber-400 font-bold">${expState[2].f} سم</span></label>
                         <input type="range" min="20" max="100" step="5" value="${expState[2].f}" oninput="updateExp2('f', this.value)" class="w-full">
                     </div>
                     <div>
-                        <label class="text-xs text-gray-400 flex justify-between mb-1"><span>بعد الجسم ($d_o$)</span><span class="text-amber-400 font-bold">${expState[2].do} سم</span></label>
+                        <label class="text-xs text-gray-400 flex justify-between mb-1"><span>بعد الجسم (dₒ)</span><span id="val-exp2-do" class="text-amber-400 font-bold">${expState[2].do} سم</span></label>
                         <input type="range" min="30" max="250" step="5" value="${expState[2].do}" oninput="updateExp2('do', this.value)" class="w-full">
                     </div>
                 `;
             } else if (currentExpId === 3) {
                 titleDiv.innerHTML = `<i class="fa-solid fa-sliders"></i> لوحة التحكم - المرايا الكروية`;
-                explDiv.innerHTML = `تخضع المرايا الكروية (المقعرة والمحدبة) لمعادلة المرآة نفسها: $\\frac{1}{f} = \\frac{1}{d_o} + \\frac{1}{d_i}$ مع مراعاة اصطلاح الإشارات للمرايا المقعرة والمحدبة.`;
+                explDiv.innerHTML = `تخضع المرايا الكروية (المقعرة والمحدبة) لمعادلة المرآة نفسها: 1/f = 1/dₒ + 1/dᵢ مع مراعاة اصطلاح الإشارات للمرايا المقعرة والمحدبة.`;
                 
                 stepsDiv.innerHTML = `
                     <div class="p-3 rounded-xl bg-black/30 border border-gray-800"><span class="text-amber-400 font-bold">1. قبل التجربة:</span> كيف تختلف صفات الصورة في المرآة المحدبة عن المرآة المقعرة؟</div>
@@ -467,17 +467,17 @@
                         </select>
                     </div>
                     <div>
-                        <label class="text-xs text-gray-400 flex justify-between mb-1"><span>البعد البؤري ($f$)</span><span class="text-amber-400 font-bold">${expState[3].f} سم</span></label>
+                        <label class="text-xs text-gray-400 flex justify-between mb-1"><span>البعد البؤري (f)</span><span id="val-exp3-f" class="text-amber-400 font-bold">${expState[3].f} سم</span></label>
                         <input type="range" min="20" max="80" step="5" value="${expState[3].f}" oninput="updateExp3('f', this.value)" class="w-full">
                     </div>
                     <div>
-                        <label class="text-xs text-gray-400 flex justify-between mb-1"><span>بعد الجسم ($d_o$)</span><span class="text-amber-400 font-bold">${expState[3].do} سم</span></label>
+                        <label class="text-xs text-gray-400 flex justify-between mb-1"><span>بعد الجسم (dₒ)</span><span id="val-exp3-do" class="text-amber-400 font-bold">${expState[3].do} سم</span></label>
                         <input type="range" min="20" max="200" step="5" value="${expState[3].do}" oninput="updateExp3('do', this.value)" class="w-full">
                     </div>
                 `;
             } else if (currentExpId === 4) {
                 titleDiv.innerHTML = `<i class="fa-solid fa-sliders"></i> لوحة التحكم - الاستضاءة`;
-                explDiv.innerHTML = `ينص قانون التربيع العكسي في الاستضاءة على أن الاستضاءة ($E$) تتناسب عكسياً مع مربع البعد عن المصدر الضوئي: $E = \\frac{P}{4\\pi r^2}$.`;
+                explDiv.innerHTML = `ينص قانون التربيع العكسي في الاستضاءة على أن الاستضاءة (E) تتناسب عكسياً مع مربع البعد عن المصدر الضوئي: E = P / (4πr²).`;
                 
                 stepsDiv.innerHTML = `
                     <div class="p-3 rounded-xl bg-black/30 border border-gray-800"><span class="text-amber-400 font-bold">1. قبل التجربة:</span> ماذا تتوقع أن يحدث لشدة الاستضاءة إذا ضاعفنا المسافة بين السطح والمصدر الضوئي؟</div>
@@ -486,17 +486,17 @@
 
                 controlsDiv.innerHTML = `
                     <div>
-                        <label class="text-xs text-gray-400 flex justify-between mb-1"><span>التدفق الضوئي ($P$) [لومن]</span><span class="text-amber-400 font-bold">${expState[4].power} lm</span></label>
+                        <label class="text-xs text-gray-400 flex justify-between mb-1"><span>التدفق الضوئي (P) [لومن]</span><span id="val-power" class="text-amber-400 font-bold">${expState[4].power} lm</span></label>
                         <input type="range" min="500" max="5000" step="100" value="${expState[4].power}" oninput="updateExp4('power', this.value)" class="w-full">
                     </div>
                     <div>
-                        <label class="text-xs text-gray-400 flex justify-between mb-1"><span>المسافة ($r$) [متر]</span><span class="text-amber-400 font-bold">${expState[4].distance} م</span></label>
+                        <label class="text-xs text-gray-400 flex justify-between mb-1"><span>المسافة (r) [متر]</span><span id="val-distance" class="text-amber-400 font-bold">${expState[4].distance} م</span></label>
                         <input type="range" min="0.5" max="5.0" step="0.1" value="${expState[4].distance}" oninput="updateExp4('distance', this.value)" class="w-full">
                     </div>
                 `;
             } else if (currentExpId === 5) {
                 titleDiv.innerHTML = `<i class="fa-solid fa-sliders"></i> لوحة التحكم - التداخل والحيود`;
-                explDiv.innerHTML = `تجربة الشق المزدوج ليونغ توضح الطبيعة الموجية للضوء، حيث تحسب المسافة بين الأهداب الضوئية عبر العلاقة: $\\lambda = \\frac{x \\cdot d}{L}$.`;
+                explDiv.innerHTML = `تجربة الشق المزدوج ليونغ توضح الطبيعة الموجية للضوء، حيث تحسب المسافة بين الأهداب الضوئية عبر العلاقة: λ = (x · d) / L.`;
                 
                 stepsDiv.innerHTML = `
                     <div class="p-3 rounded-xl bg-black/30 border border-gray-800"><span class="text-amber-400 font-bold">1. قبل التجربة:</span> كيف يؤثر زيادة الطول الموجي للضوء في مسافة الفاصل بين الأهداب المتداخلة؟</div>
@@ -505,11 +505,11 @@
 
                 controlsDiv.innerHTML = `
                     <div>
-                        <label class="text-xs text-gray-400 flex justify-between mb-1"><span>الطول الموجي ($\\lambda$) [نانومتر]</span><span class="text-amber-400 font-bold">${expState[5].wavelength} نانومتر</span></label>
+                        <label class="text-xs text-gray-400 flex justify-between mb-1"><span>الطول الموجي (λ) [نانومتر]</span><span id="val-wavelength" class="text-amber-400 font-bold">${expState[5].wavelength} نانومتر</span></label>
                         <input type="range" min="400" max="750" step="10" value="${expState[5].wavelength}" oninput="updateExp5('wavelength', this.value)" class="w-full">
                     </div>
                     <div>
-                        <label class="text-xs text-gray-400 flex justify-between mb-1"><span>المسافة بين الشقين ($d$) [مم]</span><span class="text-amber-400 font-bold">${expState[5].d} مم</span></label>
+                        <label class="text-xs text-gray-400 flex justify-between mb-1"><span>المسافة بين الشقين (d) [مم]</span><span id="val-d" class="text-amber-400 font-bold">${expState[5].d} مم</span></label>
                         <input type="range" min="0.1" max="1.5" step="0.05" value="${expState[5].d}" oninput="updateExp5('d', this.value)" class="w-full">
                     </div>
                 `;
@@ -518,14 +518,50 @@
             drawSimulation();
         }
 
-        function updateExp1(param, val) { expState[1][param] = parseFloat(val); if(param!=='angle')document.getElementById(`val-${param}`).innerText = val; document.getElementById('val-angle').innerText = expState[1].angle + '°'; drawSimulation(); }
-        function updateExp2(param, val) { expState[2][param] = param==='type'?val:parseFloat(val); drawSimulation(); }
-        function updateExp3(param, val) { expState[3][param] = param==='type'?val:parseFloat(val); drawSimulation(); }
-        function updateExp4(param, val) { expState[4][param] = parseFloat(val); drawSimulation(); }
-        function updateExp5(param, val) { expState[5][param] = parseFloat(val); drawSimulation(); }
+        function updateExp1(param, val) { 
+            expState[1][param] = parseFloat(val); 
+            if(param!=='angle') {
+                const el = document.getElementById(`val-${param}`);
+                if(el) el.innerText = val;
+            } else {
+                const el = document.getElementById('val-angle');
+                if(el) el.innerText = expState[1].angle + '°';
+            }
+            drawSimulation(); 
+        }
 
+        function updateExp2(param, val) { 
+            expState[2][param] = param==='type'?val:parseFloat(val); 
+            if(param === 'f') { const el = document.getElementById('val-exp2-f'); if(el) el.innerText = val + ' سم'; }
+            if(param === 'do') { const el = document.getElementById('val-exp2-do'); if(el) el.innerText = val + ' سم'; }
+            drawSimulation(); 
+        }
+
+        function updateExp3(param, val) { 
+            expState[3][param] = param==='type'?val:parseFloat(val); 
+            if(param === 'f') { const el = document.getElementById('val-exp3-f'); if(el) el.innerText = val + ' سم'; }
+            if(param === 'do') { const el = document.getElementById('val-exp3-do'); if(el) el.innerText = val + ' سم'; }
+            drawSimulation(); 
+        }
+
+        function updateExp4(param, val) { 
+            expState[4][param] = parseFloat(val); 
+            if(param === 'power') { const el = document.getElementById('val-power'); if(el) el.innerText = val + ' lm'; }
+            if(param === 'distance') { const el = document.getElementById('val-distance'); if(el) el.innerText = val + ' م'; }
+            drawSimulation(); 
+        }
+
+        function updateExp5(param, val) { 
+            expState[5][param] = parseFloat(val); 
+            if(param === 'wavelength') { const el = document.getElementById('val-wavelength'); if(el) el.innerText = val + ' نانومتر'; }
+            if(param === 'd') { const el = document.getElementById('val-d'); if(el) el.innerText = val + ' مم'; }
+            drawSimulation(); 
+        }
+
+        // Simulation Canvas Drawing & Calculations for all 5 Experiments
         function drawSimulation() {
             const canvas = document.getElementById('simCanvas');
+            if(!canvas) return;
             const ctx = canvas.getContext('2d');
             const liveRes = document.getElementById('live-results');
             ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -536,6 +572,7 @@
             const cy = h / 2;
 
             if (currentExpId === 1) {
+                // Experiment 1: Refraction (Snell's Law)
                 const n1 = expState[1].n1;
                 const n2 = expState[1].n2;
                 const theta1Deg = expState[1].angle;
@@ -589,11 +626,12 @@
                 }
 
                 liveRes.innerHTML = `
-                    <div class="glass-panel p-3 rounded-xl border border-gray-800 text-center"><span class="text-xs text-gray-400 block">الوسط الأول ($n_1$)</span><span class="font-bold text-amber-400">${n1}</span></div>
-                    <div class="glass-panel p-3 rounded-xl border border-gray-800 text-center"><span class="text-xs text-gray-400 block">الوسط الثاني ($n_2$)</span><span class="font-bold text-sky-400">${n2}</span></div>
-                    <div class="glass-panel p-3 rounded-xl border border-gray-800 text-center"><span class="text-xs text-gray-400 block">زاوية الانكسار ($\\theta_2$)</span><span class="font-bold text-emerald-400">${theta2Deg}</span></div>
+                    <div class="glass-panel p-3 rounded-xl border border-gray-800 text-center"><span class="text-xs text-gray-400 block">الوسط الأول (n₁)</span><span class="font-bold text-amber-400">${n1}</span></div>
+                    <div class="glass-panel p-3 rounded-xl border border-gray-800 text-center"><span class="text-xs text-gray-400 block">الوسط الثاني (n₂)</span><span class="font-bold text-sky-400">${n2}</span></div>
+                    <div class="glass-panel p-3 rounded-xl border border-gray-800 text-center"><span class="text-xs text-gray-400 block">زاوية الانكسار (θ₂)</span><span class="font-bold text-emerald-400">${theta2Deg}</span></div>
                 `;
             } else if (currentExpId === 2) {
+                // Experiment 2: Lenses
                 const f = expState[2].f;
                 const do_val = expState[2].do;
                 let di = do_val === f ? 0 : (f * do_val) / (do_val - f);
@@ -618,11 +656,12 @@
                 ctx.fillRect(objX - 4, cy - 60, 8, 60);
 
                 liveRes.innerHTML = `
-                    <div class="glass-panel p-3 rounded-xl border border-gray-800 text-center"><span class="text-xs text-gray-400 block">بعد الصورة ($d_i$)</span><span class="font-bold text-amber-400">${do_val===f?'غير مهيأة':di.toFixed(1) + ' سم'}</span></div>
-                    <div class="glass-panel p-3 rounded-xl border border-gray-800 text-center"><span class="text-xs text-gray-400 block">التكبير ($m$)</span><span class="font-bold text-sky-400">${do_val===f?'-':m.toFixed(2)}</span></div>
+                    <div class="glass-panel p-3 rounded-xl border border-gray-800 text-center"><span class="text-xs text-gray-400 block">بعد الصورة (dᵢ)</span><span class="font-bold text-amber-400">${do_val===f?'غير مهيأة':di.toFixed(1) + ' سم'}</span></div>
+                    <div class="glass-panel p-3 rounded-xl border border-gray-800 text-center"><span class="text-xs text-gray-400 block">التكبير (m)</span><span class="font-bold text-sky-400">${do_val===f?'-':m.toFixed(2)}</span></div>
                     <div class="glass-panel p-3 rounded-xl border border-gray-800 text-center"><span class="text-xs text-gray-400 block">صفات الصورة</span><span class="font-bold text-emerald-400">${imgType}</span></div>
                 `;
             } else if (currentExpId === 3) {
+                // Experiment 3: Spherical Mirrors
                 const f = expState[3].f;
                 const do_val = expState[3].do;
                 let di = do_val === f ? 0 : (f * do_val) / (do_val - f);
@@ -644,10 +683,11 @@
 
                 liveRes.innerHTML = `
                     <div class="glass-panel p-3 rounded-xl border border-gray-800 text-center"><span class="text-xs text-gray-400 block">نوع المرآة</span><span class="font-bold text-amber-400">${mirrorType}</span></div>
-                    <div class="glass-panel p-3 rounded-xl border border-gray-800 text-center"><span class="text-xs text-gray-400 block">بعد الصورة ($d_i$)</span><span class="font-bold text-sky-400">${di.toFixed(1)} سم</span></div>
-                    <div class="glass-panel p-3 rounded-xl border border-gray-800 text-center"><span class="text-xs text-gray-400 block">التكبير ($m$)</span><span class="font-bold text-emerald-400">${m.toFixed(2)}</span></div>
+                    <div class="glass-panel p-3 rounded-xl border border-gray-800 text-center"><span class="text-xs text-gray-400 block">بعد الصورة (dᵢ)</span><span class="font-bold text-sky-400">${di.toFixed(1)} سم</span></div>
+                    <div class="glass-panel p-3 rounded-xl border border-gray-800 text-center"><span class="text-xs text-gray-400 block">التكبير (m)</span><span class="font-bold text-emerald-400">${m.toFixed(2)}</span></div>
                 `;
             } else if (currentExpId === 4) {
+                // Experiment 4: Illumination
                 const P = expState[4].power;
                 const r = expState[4].distance;
                 const E = P / (4 * Math.PI * r * r);
@@ -658,11 +698,12 @@
                 ctx.fill();
 
                 liveRes.innerHTML = `
-                    <div class="glass-panel p-3 rounded-xl border border-gray-800 text-center"><span class="text-xs text-gray-400 block">التدفق الضوئي ($P$)</span><span class="font-bold text-amber-400">${P} لومن</span></div>
-                    <div class="glass-panel p-3 rounded-xl border border-gray-800 text-center"><span class="text-xs text-gray-400 block">المسافة ($r$)</span><span class="font-bold text-sky-400">${r} م</span></div>
-                    <div class="glass-panel p-3 rounded-xl border border-gray-800 text-center"><span class="text-xs text-gray-400 block">شدة الاستضاءة ($E$)</span><span class="font-bold text-emerald-400">${E.toFixed(1)} لوكس (lx)</span></div>
+                    <div class="glass-panel p-3 rounded-xl border border-gray-800 text-center"><span class="text-xs text-gray-400 block">التدفق الضوئي (P)</span><span class="font-bold text-amber-400">${P} لومن</span></div>
+                    <div class="glass-panel p-3 rounded-xl border border-gray-800 text-center"><span class="text-xs text-gray-400 block">المسافة (r)</span><span class="font-bold text-sky-400">${r} م</span></div>
+                    <div class="glass-panel p-3 rounded-xl border border-gray-800 text-center"><span class="text-xs text-gray-400 block">شدة الاستضاءة (E)</span><span class="font-bold text-emerald-400">${E.toFixed(1)} لوكس (lx)</span></div>
                 `;
             } else if (currentExpId === 5) {
+                // Experiment 5: Interference and Diffraction (Young's double slit)
                 const lam = expState[5].wavelength;
                 const d = expState[5].d;
                 const L = expState[5].L;
@@ -675,7 +716,7 @@
                 }
 
                 liveRes.innerHTML = `
-                    <div class="glass-panel p-3 rounded-xl border border-gray-800 text-center"><span class="text-xs text-gray-400 block">الطول الموجي ($\\lambda$)</span><span class="font-bold text-amber-400">${lam} نانومتر</span></div>
+                    <div class="glass-panel p-3 rounded-xl border border-gray-800 text-center"><span class="text-xs text-gray-400 block">الطول الموجي (λ)</span><span class="font-bold text-amber-400">${lam} نانومتر</span></div>
                     <div class="glass-panel p-3 rounded-xl border border-gray-800 text-center"><span class="text-xs text-gray-400 block">المسافة بين الشقين</span><span class="font-bold text-sky-400">${d} مم</span></div>
                     <div class="glass-panel p-3 rounded-xl border border-gray-800 text-center"><span class="text-xs text-gray-400 block">الفاصل بين الأهداب</span><span class="font-bold text-emerald-400">${fringeDist.toFixed(2)} مم</span></div>
                 `;
@@ -692,6 +733,7 @@
 
         function renderLaws() {
             const container = document.getElementById('laws-container');
+            if(!container) return;
             container.innerHTML = lawsData.map(law => `
                 <div class="glass-panel p-6 rounded-2xl border border-gray-800 space-y-3">
                     <h3 class="font-bold text-lg text-amber-400">${law.name}</h3>
@@ -716,11 +758,12 @@
 
         function updateNotebookTable() {
             const tbody = document.getElementById('notebook-table-body');
+            if(!tbody) return;
             if (notebookData.length === 0) {
                 tbody.innerHTML = `<tr><td colspan="4" class="p-8 text-center text-gray-500">لا توجد نتائج مسجلة حتى الآن.</td></tr>`;
                 return;
             }
-            tbody.innerHTML = notebookData.map((item, idx) => `
+            tbody.innerHTML = notebookData.map((item) => `
                 <tr class="hover:bg-white/5 transition">
                     <td class="p-4 font-bold text-amber-400">${item.exp}</td>
                     <td class="p-4 font-mono text-xs text-gray-300">${item.inputs}</td>
