@@ -133,9 +133,8 @@ function drawInterference(ctx, canvas) {
     ctx.fillStyle = '#cbd5e1';
     ctx.fillRect(100, 50, 10, h - 100);
 
-    // حساب تباعد الأهداب بناءً على المدخلات
-    // wavelength و slitDistance يجب أن تكونا متغيرات مرتبطة بالأشرطة
-    const fringeSpacing = (wavelength * (h - 100)) / (slitDistance * 1000); 
+    // حساب تباعد الأهداب بناءً على المدخلات من expState
+    const fringeSpacing = (expState[5].wavelength * (h - 100)) / (expState[5].d * 1000); 
 
     for (let i = 0; i < 10; i++) {
         let alpha = Math.abs(Math.sin(i * fringeSpacing / 20));
@@ -147,4 +146,5 @@ function drawInterference(ctx, canvas) {
         ctx.stroke();
     }
 }
+
 
