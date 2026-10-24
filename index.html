@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>مرصد الفوتون | Photon Observatory</title>
+    <!-- أيقونة الموقع: عدسة مكبّرة زرقاء مع مقبض ذهبي -->
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230b0f19'/%3E%3Ccircle cx='28' cy='28' r='15' fill='none' stroke='%2338bdf8' stroke-width='5'/%3E%3Cline x1='39' y1='39' x2='54' y2='54' stroke='%23f59e0b' stroke-width='6' stroke-linecap='round'/%3E%3C/svg%3E">
     <!-- Google Fonts: Cairo & Tajawal -->
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&family=Tajawal:wght@400;500;700;900&display=swap" rel="stylesheet">
     <!-- Tailwind CSS CDN -->
@@ -35,6 +37,16 @@
         input[type=range] {
             accent-color: #38bdf8;
         }
+        .animate-fade {
+            animation: fadeIn 0.4s ease-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        #simCanvas, #graphCanvas {
+            touch-action: manipulation;
+        }
     </style>
 </head>
 <body class="bg-[#0b0f19] text-gray-100 min-h-screen flex flex-col selection:bg-amber-500 selection:text-black">
@@ -65,7 +77,7 @@
 
             <!-- Mobile Menu Button -->
             <div class="md:hidden">
-                <button onclick="toggleMobileMenu()" class="text-gray-300 hover:text-white p-2 focus:outline-none">
+                <button onclick="toggleMobileMenu()" class="text-gray-300 hover:text-white p-2 focus:outline-none" aria-label="القائمة">
                     <i class="fa-solid fa-bars text-2xl"></i>
                 </button>
             </div>
@@ -89,7 +101,7 @@
             <div class="relative overflow-hidden rounded-3xl glass-panel p-8 sm:p-12 border border-amber-500/20 glow-gold">
                 <div class="absolute -left-20 -top-20 w-72 h-72 bg-amber-500/10 rounded-full blur-3xl pointer-events-none"></div>
                 <div class="absolute -right-20 -bottom-20 w-72 h-72 bg-sky-500/10 rounded-full blur-3xl pointer-events-none"></div>
-                
+
                 <div class="relative z-10 max-w-2xl space-y-6">
                     <span class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-semibold bg-amber-500/10 text-amber-400 border border-amber-500/30">
                         <i class="fa-solid fa-atom"></i> بيئة محاكاة فيزيائية تفاعلية
@@ -152,7 +164,7 @@
                 </div>
                 <!-- Experiment Selector Tabs -->
                 <div class="flex flex-wrap gap-2">
-                    <button onclick="switchExp(1)" id="btn-exp-1" class="px-4 py-2 rounded-xl text-sm font-bold transition bg-amber-500 text-black shadow">انكسار الضوء</button>
+                    <button onclick="switchExp(1)" id="btn-exp-1" class="px-4 py-2 rounded-xl text-sm font-bold transition bg-gray-800 text-gray-300 hover:bg-gray-700">انكسار الضوء</button>
                     <button onclick="switchExp(2)" id="btn-exp-2" class="px-4 py-2 rounded-xl text-sm font-bold transition bg-gray-800 text-gray-300 hover:bg-gray-700">العدسات</button>
                     <button onclick="switchExp(3)" id="btn-exp-3" class="px-4 py-2 rounded-xl text-sm font-bold transition bg-gray-800 text-gray-300 hover:bg-gray-700">المرايا الكروية</button>
                     <button onclick="switchExp(4)" id="btn-exp-4" class="px-4 py-2 rounded-xl text-sm font-bold transition bg-gray-800 text-gray-300 hover:bg-gray-700">الاستضاءة</button>
@@ -165,18 +177,22 @@
                 <!-- Controls & Steps Column -->
                 <div class="lg:col-span-1 space-y-6">
                     <div class="glass-panel p-6 rounded-2xl border border-gray-800 space-y-6">
-                        <h3 id="exp-title" class="text-lg font-bold border-b border-gray-800 pb-3 flex items-center gap-2 text-amber-400">
-                            <i class="fa-solid fa-sliders"></i> لوحة التحكم والمتغيرات
-                        </h3>
-                        
-                        <!-- Dynamic Controls Container -->
-                        <div id="exp-controls" class="space-y-4">
-                            <!-- Injected via JS -->
+                        <div class="space-y-2 border-b border-gray-800 pb-3">
+                            <h3 id="exp-title" class="text-lg font-bold flex items-center gap-2 text-amber-400">
+                                <i class="fa-solid fa-sliders"></i> لوحة التحكم والمتغيرات
+                            </h3>
+                            <p id="exp-formula" class="font-mono text-sky-300 text-sm text-center bg-black/40 border border-gray-800 rounded-xl p-2" dir="ltr"></p>
                         </div>
 
-                        <div class="pt-4 border-t border-gray-800 flex gap-3">
+                        <!-- Dynamic Controls Container -->
+                        <div id="exp-controls" class="space-y-4"></div>
+
+                        <!-- Input validation messages -->
+                        <div id="warn-box" class="space-y-2"></div>
+
+                        <div class="pt-4 border-t border-gray-800 flex flex-col sm:flex-row lg:flex-col xl:flex-row gap-3">
                             <button onclick="resetCurrentExp()" class="flex-1 py-3 px-4 rounded-xl bg-gray-800 hover:bg-gray-700 text-sm font-bold transition flex items-center justify-center gap-2">
-                                <i class="fa-solid fa-rotate-right"></i> إعادة تعيين
+                                <i class="fa-solid fa-rotate-right"></i> إعادة ضبط المدخلات
                             </button>
                             <button onclick="saveCurrentResult()" class="flex-1 py-3 px-4 rounded-xl bg-amber-500 hover:bg-amber-600 text-black text-sm font-extrabold transition flex items-center justify-center gap-2 shadow">
                                 <i class="fa-solid fa-bookmark"></i> حفظ في الدفتر
@@ -189,26 +205,57 @@
                         <h4 class="font-bold text-sky-400 flex items-center gap-2">
                             <i class="fa-solid fa-clipboard-question"></i> خطوات التعلم الإرشادية
                         </h4>
-                        <div id="learning-steps" class="space-y-3 text-sm text-gray-300">
-                            <!-- Filled by JS -->
-                        </div>
+                        <div id="learning-steps" class="space-y-3 text-sm text-gray-300"></div>
                     </div>
                 </div>
 
-                <!-- Simulation Visual Canvas Column -->
+                <!-- Simulation & Graph Column -->
                 <div class="lg:col-span-2 space-y-6">
-                    <div class="glass-panel p-4 rounded-2xl border border-gray-800 relative overflow-hidden flex flex-col items-center justify-center min-h-[420px]">
-                        <div class="absolute top-4 right-4 bg-black/50 backdrop-blur px-3 py-1 rounded-lg border border-white/10 text-xs text-gray-400 z-10" id="canvas-badge">
-                            محاكاة تفاعلية مباشرة
+                    <div class="glass-panel p-4 rounded-2xl border border-gray-800 relative overflow-hidden space-y-4">
+                        <div class="flex flex-wrap items-center justify-between gap-2">
+                            <div class="bg-black/50 backdrop-blur px-3 py-1 rounded-lg border border-white/10 text-xs text-gray-400" id="canvas-badge">
+                                محاكاة تفاعلية مباشرة
+                            </div>
+                            <div class="text-xs text-gray-500" id="sim-hint">تتحرك المحاكاة بحسب القيم الحالية</div>
                         </div>
-                        
-                        <!-- Canvas Element -->
-                        <canvas id="simCanvas" width="700" height="400" class="w-full h-auto max-w-full rounded-xl bg-[#060911] border border-gray-800 shadow-inner"></canvas>
 
-                        <!-- Live Calculations Display Bar -->
-                        <div id="live-results" class="w-full mt-4 grid grid-cols-2 sm:grid-cols-3 gap-3">
-                            <!-- Filled by JS -->
+                        <!-- Canvas Element -->
+                        <canvas id="simCanvas" width="700" height="400" class="w-full h-auto max-w-full rounded-xl bg-[#060911] border border-gray-800 shadow-inner" role="img" aria-label="محاكاة التجربة"></canvas>
+
+                        <!-- Playback controls -->
+                        <div class="flex flex-wrap items-center gap-2">
+                            <button id="play-btn" onclick="togglePlay()" class="px-4 py-2 rounded-xl bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 hover:bg-emerald-500/30 text-sm font-bold transition flex items-center gap-2">
+                                <i class="fa-solid fa-pause"></i> <span>إيقاف</span>
+                            </button>
+                            <button onclick="restartMotion()" class="px-4 py-2 rounded-xl bg-gray-800 hover:bg-gray-700 text-sm font-bold transition flex items-center gap-2">
+                                <i class="fa-solid fa-backward-step"></i> إعادة تشغيل الحركة
+                            </button>
+                            <label class="text-xs text-gray-400 flex items-center gap-2">
+                                السرعة
+                                <select id="speed-sel" onchange="setSpeed(this.value)" class="bg-[#0b0f19] border border-gray-700 rounded-xl px-2 py-2 text-sm">
+                                    <option value="0.25">×0.25</option>
+                                    <option value="0.5">×0.5</option>
+                                    <option value="1" selected>×1</option>
+                                    <option value="2">×2</option>
+                                </select>
+                            </label>
+                            <button id="rec-btn" onclick="toggleRecord()" class="px-4 py-2 rounded-xl bg-sky-500/20 text-sky-300 border border-sky-500/30 hover:bg-sky-500/30 text-sm font-bold transition flex items-center gap-2">
+                                <i class="fa-solid fa-circle-dot"></i> <span>تسجيل فيديو</span>
+                            </button>
+                            <span id="rec-status" class="text-xs text-gray-400"></span>
                         </div>
+
+                        <!-- Live Calculations Display -->
+                        <div id="live-results" class="w-full grid grid-cols-2 sm:grid-cols-3 gap-3"></div>
+                    </div>
+
+                    <!-- Graph Panel -->
+                    <div class="glass-panel p-4 rounded-2xl border border-gray-800 space-y-3">
+                        <h4 class="font-bold text-sky-400 flex items-center gap-2">
+                            <i class="fa-solid fa-chart-area"></i> <span id="graph-title">الرسم البياني</span>
+                        </h4>
+                        <canvas id="graphCanvas" width="700" height="240" class="w-full h-auto max-w-full rounded-xl bg-[#060911] border border-gray-800"></canvas>
+                        <p id="graph-caption" class="text-xs text-gray-400 leading-relaxed"></p>
                     </div>
 
                     <!-- Scientific Explanation Box -->
@@ -216,9 +263,7 @@
                         <h4 class="font-bold text-amber-400 flex items-center gap-2">
                             <i class="fa-solid fa-book-open"></i> التفسير العلمي والقانون المستخدم
                         </h4>
-                        <p id="exp-explanation" class="text-gray-300 text-sm leading-relaxed">
-                            <!-- Filled by JS -->
-                        </p>
+                        <p id="exp-explanation" class="text-gray-300 text-sm leading-relaxed"></p>
                     </div>
                 </div>
             </div>
@@ -234,9 +279,7 @@
                 </p>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6" id="laws-container">
-                <!-- Filled via JS -->
-            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6" id="laws-container"></div>
         </section>
 
         <!-- TAB 4: NOTEBOOK -->
@@ -245,8 +288,9 @@
                 <div>
                     <span class="text-amber-400 text-xs font-bold uppercase tracking-wider">سجل القياسات والنتائج</span>
                     <h2 class="text-3xl font-black mt-1">دفتر التجارب الافتراضي</h2>
+                    <p class="text-xs text-gray-400 mt-2" id="notebook-count"></p>
                 </div>
-                <div class="flex gap-3">
+                <div class="flex flex-wrap gap-3">
                     <button onclick="exportNotebook()" class="px-5 py-2.5 rounded-xl bg-sky-500 hover:bg-sky-600 text-black font-extrabold text-sm transition shadow flex items-center gap-2">
                         <i class="fa-solid fa-file-arrow-down"></i> تصدير البيانات (CSV)
                     </button>
@@ -258,20 +302,17 @@
 
             <div class="glass-panel rounded-2xl border border-gray-800 overflow-hidden">
                 <div class="overflow-x-auto">
-                    <table class="w-full text-right border-collapse">
+                    <table class="w-full text-right border-collapse min-w-[640px]">
                         <thead>
                             <tr class="border-b border-gray-800 bg-black/40 text-xs text-gray-400 uppercase tracking-wider">
                                 <th class="p-4">التجربة</th>
-                                <th class="p-4">المدخلات الأساسية</th>
+                                <th class="p-4">المدخلات</th>
                                 <th class="p-4">النتائج المحسوبة</th>
-                                <th class="p-4">الوقت</th>
+                                <th class="p-4">التوقيت</th>
+                                <th class="p-4">إجراء</th>
                             </tr>
                         </thead>
-                        <tbody id="notebook-table-body" class="divide-y divide-gray-800/50 text-sm">
-                            <tr>
-                                <td colspan="4" class="p-8 text-center text-gray-500">لا توجد نتائج مسجلة حتى الآن. قومي بإجراء التجارب واضغطي على "حفظ في الدفتر".</td>
-                            </tr>
-                        </tbody>
+                        <tbody id="notebook-table-body" class="divide-y divide-gray-800/50 text-sm"></tbody>
                     </table>
                 </div>
             </div>
@@ -324,546 +365,1085 @@
         </div>
     </footer>
 
+    <!-- Toast notifications -->
+    <div id="toast" class="hidden fixed bottom-6 left-1/2 -translate-x-1/2 z-[70] px-5 py-3 rounded-xl text-sm font-bold shadow-lg border"></div>
+
     <!-- JavaScript Application Logic -->
     <script>
-        let currentTab = 'home';
-        let currentExpId = 1;
-        let notebookData = [];
+    /* ==========================================================
+       مرصد الفوتون — منطق المحاكاة
+       كل تجربة لها: مدخلات مُتحقَّق منها، حساب فيزيائي (compute)،
+       رسم متحرك مولَّد من الحساب نفسه (draw)، ورسم بياني (graph).
+       ========================================================== */
 
-        let expState = {
-            1: { n1: 1.0, n2: 1.5, angle: 45 }, 
-            2: { type: 'convex', f: 50, do: 120, ho: 40 }, 
-            3: { type: 'concave', f: 40, do: 90 }, 
-            4: { power: 2000, distance: 2.0 }, 
-            5: { wavelength: 550, d: 0.5, L: 2.0 } 
-        };
+    const SIM_W = 700, SIM_H = 400;     // الأبعاد المنطقية للمحاكاة
+    const GR_W = 700, GR_H = 240;       // الأبعاد المنطقية للرسم البياني
+    const LENS_CX = 380, MIRROR_CX = 520, LENS_PX_PER_CM = 1.0;
 
-        function switchTab(tabId) {
-            currentTab = tabId;
-            ['home', 'lab', 'laws', 'notebook', 'references'].forEach(t => {
-                document.getElementById(`tab-${t}`).classList.add('hidden');
-                const navBtn = document.getElementById(`nav-${t}`);
-                if (navBtn) {
-                    navBtn.className = "px-4 py-2 rounded-xl transition-all text-gray-300 hover:text-white hover:bg-white/5";
-                }
-            });
+    const EXP_KEYS = { 1: 'refraction', 2: 'lens', 3: 'mirror', 4: 'illumination', 5: 'interference' };
+    const EXP_NAMES = { 1: 'انكسار الضوء', 2: 'العدسات الرقيقة', 3: 'المرايا الكروية', 4: 'الاستضاءة', 5: 'التداخل والحيود' };
+    const DEFAULTS = {
+        1: { n1: 1.0, n2: 1.5, angle: 45 },
+        2: { type: 'convex', f: 50, do: 120, ho: 40 },
+        3: { type: 'concave', f: 40, do: 90, ho: 30 },
+        4: { power: 2000, distance: 2.0, angle: 0 },
+        5: { wavelength: 550, d: 0.5, L: 2.0 }
+    };
 
-            document.getElementById(`tab-${tabId}`).classList.remove('hidden');
-            const activeNav = document.getElementById(`nav-${tabId}`);
-            if (activeNav) {
-                activeNav.className = "px-4 py-2 rounded-xl transition-all text-amber-400 bg-amber-500/10";
-            }
+    // تعريف عناصر التحكم: الحدود والوحدات ودقة العرض
+    const CONTROLS = {
+        1: [
+            { key: 'n1', type: 'range', label: 'معامل انكسار الوسط الأول (n₁)', min: 1.0, max: 2.0, step: 0.05, dec: 2, unit: '' },
+            { key: 'n2', type: 'range', label: 'معامل انكسار الوسط الثاني (n₂)', min: 1.0, max: 2.5, step: 0.05, dec: 2, unit: '' },
+            { key: 'angle', type: 'range', label: 'زاوية السقوط (θ₁)', min: 0, max: 85, step: 1, dec: 0, unit: '°' }
+        ],
+        2: [
+            { key: 'type', type: 'select', label: 'نوع العدسة', options: [['convex', 'محدبة (مجمّعة)'], ['concave', 'مقعرة (مفرّقة)']] },
+            { key: 'f', type: 'range', label: 'البعد البؤري (f) [سم]', min: 20, max: 100, step: 5, dec: 0, unit: 'سم' },
+            { key: 'do', type: 'range', label: 'بعد الجسم (dₒ) [سم]', min: 30, max: 250, step: 5, dec: 0, unit: 'سم' },
+            { key: 'ho', type: 'range', label: 'ارتفاع الجسم (hₒ) [سم]', min: 10, max: 60, step: 1, dec: 0, unit: 'سم' }
+        ],
+        3: [
+            { key: 'type', type: 'select', label: 'نوع المرآة', options: [['concave', 'مرآة مقعرة (مجمّعة)'], ['convex', 'مرآة محدبة (مفرّقة)']] },
+            { key: 'f', type: 'range', label: 'البعد البؤري (f) [سم]', min: 20, max: 80, step: 5, dec: 0, unit: 'سم' },
+            { key: 'do', type: 'range', label: 'بعد الجسم (dₒ) [سم]', min: 20, max: 200, step: 5, dec: 0, unit: 'سم' },
+            { key: 'ho', type: 'range', label: 'ارتفاع الجسم (hₒ) [سم]', min: 10, max: 60, step: 1, dec: 0, unit: 'سم' }
+        ],
+        4: [
+            { key: 'power', type: 'range', label: 'التدفق الضوئي (P) [لومن]', min: 500, max: 5000, step: 100, dec: 0, unit: 'lm' },
+            { key: 'distance', type: 'range', label: 'المسافة (r) [متر]', min: 0.5, max: 5.0, step: 0.1, dec: 1, unit: 'م' },
+            { key: 'angle', type: 'range', label: 'زاوية سقوط الضوء على السطح (θ) [درجة]', min: 0, max: 80, step: 1, dec: 0, unit: '°' }
+        ],
+        5: [
+            { key: 'wavelength', type: 'range', label: 'الطول الموجي (λ) [نانومتر]', min: 400, max: 750, step: 10, dec: 0, unit: 'nm' },
+            { key: 'd', type: 'range', label: 'المسافة بين الشقين (d) [مم]', min: 0.1, max: 1.5, step: 0.05, dec: 2, unit: 'مم' },
+            { key: 'L', type: 'range', label: 'بعد الشاشة عن الشقين (L) [متر]', min: 1.0, max: 3.0, step: 0.1, dec: 1, unit: 'م' }
+        ]
+    };
 
-            if (tabId === 'lab') {
-                renderExperiment();
-            } else if (tabId === 'laws') {
-                renderLaws();
-            }
+    const EXP_INFO = {
+        1: {
+            title: 'لوحة التحكم - انكسار الضوء (قانون سنل)',
+            formula: 'n₁ · sin θ₁ = n₂ · sin θ₂',
+            explain: 'عند انتقال الشعاع الضوئي من وسط إلى وسط آخر يختلف عنه في معامل الانكسار (n)، فإن مساره ينحرف. إذا انتقل من وسط أقل انكساراً إلى وسط أكبر انكساراً (n₂ > n₁)، فإن الشعاع ينحرف مقترباً من العمود المقام وفق قانون سنل: n₁ sin(θ₁) = n₂ sin(θ₂). وتسير الموجة أبطأ في الوسط الأكثر انكساراً، لذلك تُبطئ المحاكاة الحركة داخله. أما إذا انتقل الضوء من وسط أكبر انكساراً إلى وسط أقل بزاوية أكبر من الزاوية الحرجة، فيحدث انعكاس كلي داخلي.',
+            steps: [
+                '<span class="text-amber-400 font-bold">1. قبل التجربة:</span> ماذا تتوقع أن يحدث لزاوية الانكسار إذا زاد معامل انكسار الوسط الثاني (n₂)؟',
+                '<span class="text-sky-400 font-bold">2. نفّذي التجربة:</span> غيّري زاوية السقوط أو المعاملات ولاحظي تغيّر مسار الشعاع وسرعة الضوء في كل وسط.',
+                '<span class="text-purple-400 font-bold">3. الملاحظة:</span> هل يحدث انعكاس كلي داخلي عندما ينتقل الضوء من وسط أكبر إلى أقل انكساراً بزاوية أكبر من الزاوية الحرجة؟'
+            ]
+        },
+        2: {
+            title: 'لوحة التحكم - العدسات الرقيقة',
+            formula: '1/f = 1/dₒ + 1/dᵢ    ،    m = −dᵢ/dₒ',
+            explain: 'تستخدم معادلة العدسات الرقيقة لتحديد موضع الصورة الناتجة: 1/f = 1/dₒ + 1/dᵢ، ويُحسب التكبير عبر العلاقة: m = hᵢ/hₒ = −dᵢ/dₒ. الأشعة الثلاثة المرسومة (الموازية للمحور، والمارّة بالمركز البصري) تُظهر موضع الصورة، والمحدبة تكون صورتها حقيقية عندما يكون dₒ > f، أما المقعرة فتعطي دائماً صورة خيالية معتدلة. القدرة البصرية P = 100/f (بالديوبتر) مع f بالسنتيمتر.',
+            steps: [
+                '<span class="text-amber-400 font-bold">1. قبل التجربة:</span> ماذا تتوقعين لصفات الصورة عندما يكون الجسم على بعد أكبر من ضعف البعد البؤري (2f)؟',
+                '<span class="text-sky-400 font-bold">2. نفّذي التجربة:</span> عدّلي بعد الجسم (dₒ) أو البعد البؤري (f) وراقبي تحرّك الأشعة وتكوّن الصورة.',
+                '<span class="text-purple-400 font-bold">3. الملاحظة:</span> متى تكون الصورة مكبّرة؟ ومتى تكون خيالية؟'
+            ]
+        },
+        3: {
+            title: 'لوحة التحكم - المرايا الكروية',
+            formula: '1/f = 1/dₒ + 1/dᵢ    ،    R = 2f',
+            explain: 'تخضع المرايا الكروية (المقعرة والمحدبة) لمعادلة المرآة نفسها: 1/f = 1/dₒ + 1/dᵢ مع مراعاة اصطلاح الإشارات: البعد البؤري للمرآة المقعرة موجب وللمحدبة سالب. الشعاع الموازي للمحور ينعكس مارّاً بالبؤرة، والشعاع المار بالبؤرة ينعكس موازياً للمحور، والشعاع المار بالمركز ينعكس على نفسه. تقاطع الأشعة المنعكسة يحدد موضع الصورة.',
+            steps: [
+                '<span class="text-amber-400 font-bold">1. قبل التجربة:</span> كيف تختلف صفات الصورة في المرآة المحدبة عن المرآة المقعرة؟',
+                '<span class="text-sky-400 font-bold">2. نفّذي التجربة:</span> حرّكي الجسم أمام المرآة الكروية وتابعي الأشعة المنعكسة والصورة.',
+                '<span class="text-purple-400 font-bold">3. الملاحظة:</span> ماذا يحدث للصورة عندما يكون الجسم في البؤرة تماماً؟'
+            ]
+        },
+        4: {
+            title: 'لوحة التحكم - الاستضاءة',
+            formula: 'I = P/(4π)    ،    E = I · cos θ / r²',
+            explain: 'ينص قانون التربيع العكسي في الاستضاءة على أن الاستضاءة (E) تتناسب عكسياً مع مربع البعد عن المصدر الضوئي: E = P / (4πr²) للسقوط العمودي. وعند السقوط المائل تُضرب القيمة في cos θ، لأن المساحة المضاءة تتمدد. شدة المصدر I = P/(4π) بالكانديلا، والاستضاءة بالوحدة لوكس (lx) = لومن/م².',
+            steps: [
+                '<span class="text-amber-400 font-bold">1. قبل التجربة:</span> ماذا تتوقع أن يحدث لشدة الاستضاءة إذا ضاعفنا المسافة بين السطح والمصدر الضوئي؟',
+                '<span class="text-sky-400 font-bold">2. نفّذي التجربة:</span> غيّري التدفق الضوئي والمسافة ولاحظي قيمة الاستضاءة باللوكس.',
+                '<span class="text-purple-400 font-bold">3. الملاحظة:</span> ماذا يحدث للاستضاءة عندما يصبح السطح مائلاً؟ ولماذا؟'
+            ]
+        },
+        5: {
+            title: 'لوحة التحكم - التداخل والحيود',
+            formula: 'Δy = λ · L / d',
+            explain: 'تجربة الشق المزدوج ليونغ توضح الطبيعة الموجية للضوء، حيث تُحسب المسافة بين الأهداب المضيئة المتتالية عبر العلاقة: Δy = λ · L / d. تتحرك الدوائر في الرسم لتمثل انتشار الموجات من الشقين، والشدة على الشاشة تتبع العلاقة I = I₀ cos²(π d y / λ L). تبيّن التجربة أن الفاصل بين الأهداب يزداد عند زيادة λ أو L، ويقل عند زيادة d.',
+            steps: [
+                '<span class="text-amber-400 font-bold">1. قبل التجربة:</span> كيف يؤثر زيادة الطول الموجي للضوء في مسافة الفاصل بين الأهداب المتداخلة؟',
+                '<span class="text-sky-400 font-bold">2. نفّذي التجربة:</span> عدّلي الطول الموجي أو المسافة بين الشقين أو بعد الشاشة ولاحظي التغيّر في النمط.',
+                '<span class="text-purple-400 font-bold">3. الملاحظة:</span> كيف تقارن الأهداب الناتجة عن الضوء الأزرق بالأحمر؟'
+            ]
         }
+    };
 
-        function toggleMobileMenu() {
-            const menu = document.getElementById('mobile-menu');
-            menu.classList.toggle('hidden');
+    // ---------- الحالة ----------
+    let currentTab = 'home';
+    let currentExpId = 1;
+    let expState = clone(DEFAULTS);
+    let lastCompute = null;
+    let notebook = [];
+    const sim = { running: true, t: 0, speed: 1, last: 0 };
+    let recorder = null, recChunks = [], recTimer = null;
+
+    // ---------- أدوات عامة ----------
+    const $ = id => document.getElementById(id);
+    function clone(o) { return JSON.parse(JSON.stringify(o)); }
+    const rad = d => d * Math.PI / 180;
+    const deg = r => r * 180 / Math.PI;
+    const finite = (...xs) => xs.every(x => typeof x === 'number' && isFinite(x));
+
+    function toast(msg, type = 'ok') {
+        const el = $('toast');
+        el.textContent = msg;
+        el.className = `fixed bottom-6 left-1/2 -translate-x-1/2 z-[70] px-5 py-3 rounded-xl text-sm font-bold shadow-lg border ${type === 'error' ? 'bg-rose-500/90 border-rose-300 text-white' : 'bg-emerald-500/90 border-emerald-300 text-black'}`;
+        clearTimeout(toast._t);
+        toast._t = setTimeout(() => el.classList.add('hidden'), 3200);
+    }
+
+    // تهيئة اللوحة بحيث تطابق دقة الشاشة (Retina) وعرض العنصر
+    function prepCanvas(cv, lw, lh) {
+        const dpr = window.devicePixelRatio || 1;
+        const cssW = Math.max(240, cv.clientWidth || lw);
+        const pw = Math.round(cssW * dpr), ph = Math.round(cssW * lh / lw * dpr);
+        if (cv.width !== pw || cv.height !== ph) { cv.width = pw; cv.height = ph; }
+        const ctx = cv.getContext('2d');
+        ctx.setTransform(pw / lw, 0, 0, ph / lh, 0, 0);
+        return ctx;
+    }
+
+    // ---------- الحسابات الفيزيائية ----------
+    // نواة مشتركة للعدسات والمرايا: 1/f = 1/dₒ + 1/dᵢ ،  m = −dᵢ/dₒ
+    function imageCore(fs, dO, ho) {
+        if (Math.abs(dO - fs) < 1e-9) {
+            return { fs, dO, ho, infinite: true, di: Infinity, m: 0, hi: 0, virtual: false };
         }
+        const di = fs * dO / (dO - fs);
+        const m = -di / dO;
+        return { fs, dO, ho, infinite: false, di, m, hi: m * ho, virtual: di < 0 };
+    }
 
-        function switchExp(id) {
-            currentExpId = id;
-            for (let i = 1; i <= 5; i++) {
-                const btn = document.getElementById(`btn-exp-${i}`);
-                if (i === id) {
-                    btn.className = "px-4 py-2 rounded-xl text-sm font-bold transition bg-amber-500 text-black shadow";
-                } else {
-                    btn.className = "px-4 py-2 rounded-xl text-sm font-bold transition bg-gray-800 text-gray-300 hover:bg-gray-700";
-                }
-            }
-            renderExperiment();
-        }
-
-        function resetCurrentExp() {
-            if (currentExpId === 1) expState[1] = { n1: 1.0, n2: 1.5, angle: 45 };
-            if (currentExpId === 2) expState[2] = { type: 'convex', f: 50, do: 120, ho: 40 };
-            if (currentExpId === 3) expState[3] = { type: 'concave', f: 40, do: 90 };
-            if (currentExpId === 4) expState[4] = { power: 2000, distance: 2.0 };
-            if (currentExpId === 5) expState[5] = { wavelength: 550, d: 0.5, L: 2.0 };
-            renderExperiment();
-        }
-
-        function renderExperiment() {
-            const controlsDiv = document.getElementById('exp-controls');
-            const stepsDiv = document.getElementById('learning-steps');
-            const explDiv = document.getElementById('exp-explanation');
-            const titleDiv = document.getElementById('exp-title');
-
-            controlsDiv.innerHTML = '';
-            stepsDiv.innerHTML = '';
-
-            if (currentExpId === 1) {
-                titleDiv.innerHTML = `<i class="fa-solid fa-sliders"></i> لوحة التحكم - انكسار الضوء (قانون سنل)`;
-                explDiv.innerHTML = `عند انتقال الشعاع الضوئي من وسط إلى وسط آخر يختلف عنه في معامل الانكسار (n)، فإن مساره ينحرف. إذا انتقل من وسط أقل انكساراً إلى وسط أكبر انكساراً (n₂ > n₁)، فإن الشعاع ينحرف مقترباً من العمود المقام وفق قانون سنل: n₁ sin(θ₁) = n₂ sin(θ₂).`;
-                
-                stepsDiv.innerHTML = `
-                    <div class="p-3 rounded-xl bg-black/30 border border-gray-800"><span class="text-amber-400 font-bold">1. قبل التجربة:</span> ماذا تتوقع أن يحدث لزاوية الانكسار إذا زاد معامل انكسار الوسط الثاني (n₂)؟</div>
-                    <div class="p-3 rounded-xl bg-black/30 border border-gray-800"><span class="text-sky-400 font-bold">2. نفّذي التجربة:</span> قومي بتغيير زاوية السقوط أو المعاملات ولاحظي تغير مسار الشعاع.</div>
-                    <div class="p-3 rounded-xl bg-black/30 border border-gray-800"><span class="text-purple-400 font-bold">3. الملاحظة:</span> هل يحدث انعكاس كلي داخلي عندما ينتقل الضوء من وسط أكبر إلى أقل انكساراً بزاوية أكبر من الزاوية الحرجة؟</div>
-                `;
-
-                controlsDiv.innerHTML = `
-                    <div>
-                        <label class="text-xs text-gray-400 flex justify-between mb-1"><span>معامل انكسار الوسط الأول (n₁)</span><span id="val-n1" class="text-amber-400 font-bold">${expState[1].n1}</span></label>
-                        <input type="range" min="1.0" max="2.0" step="0.05" value="${expState[1].n1}" oninput="updateExp1('n1', this.value)" class="w-full">
-                    </div>
-                    <div>
-                        <label class="text-xs text-gray-400 flex justify-between mb-1"><span>معامل انكسار الوسط الثاني (n₂)</span><span id="val-n2" class="text-amber-400 font-bold">${expState[1].n2}</span></label>
-                        <input type="range" min="1.0" max="2.5" step="0.05" value="${expState[1].n2}" oninput="updateExp1('n2', this.value)" class="w-full">
-                    </div>
-                    <div>
-                        <label class="text-xs text-gray-400 flex justify-between mb-1"><span>زاوية السقوط (θ₁)</span><span id="val-angle" class="text-amber-400 font-bold">${expState[1].angle}°</span></label>
-                        <input type="range" min="10" max="85" step="1" value="${expState[1].angle}" oninput="updateExp1('angle', this.value)" class="w-full">
-                    </div>
-                `;
-            } else if (currentExpId === 2) {
-                titleDiv.innerHTML = `<i class="fa-solid fa-sliders"></i> لوحة التحكم - العدسات الرقيقة`;
-                explDiv.innerHTML = `تستخدم معادلة العدسات الرقيقة لتحديد موضع الصورة الناتجة: 1/f = 1/dₒ + 1/dᵢ، ويحسب التكبير عبر العلاقة: m = hᵢ/hₒ = -dᵢ/dₒ.`;
-                
-                stepsDiv.innerHTML = `
-                    <div class="p-3 rounded-xl bg-black/30 border border-gray-800"><span class="text-amber-400 font-bold">1. قبل التجربة:</span> ماذا تتوقعي لصفات الصورة عندما يكون الجسم على بعد أكبر من ضعف البعد البؤري (2f)؟</div>
-                    <div class="p-3 rounded-xl bg-black/30 border border-gray-800"><span class="text-sky-400 font-bold">2. نفّذي التجربة:</span> عدلي بعد الجسم (dₒ) أو البعد البؤري (f) ولاحظي تكوين الصورة.</div>
-                `;
-
-                controlsDiv.innerHTML = `
-                    <div>
-                        <label class="text-xs text-gray-400 mb-1 block">نوع العدسة</label>
-                        <select onchange="updateExp2('type', this.value)" class="w-full bg-[#0b0f19] border border-gray-700 rounded-xl p-2.5 text-sm">
-                            <option value="convex" ${expState[2].type==='convex'?'selected':''}>محدبة (مجمّعة)</option>
-                            <option value="concave" ${expState[2].type==='concave'?'selected':''}>مقعرة (مفرّقة)</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="text-xs text-gray-400 flex justify-between mb-1"><span>البعد البؤري (f)</span><span id="val-exp2-f" class="text-amber-400 font-bold">${expState[2].f} سم</span></label>
-                        <input type="range" min="20" max="100" step="5" value="${expState[2].f}" oninput="updateExp2('f', this.value)" class="w-full">
-                    </div>
-                    <div>
-                        <label class="text-xs text-gray-400 flex justify-between mb-1"><span>بعد الجسم (dₒ)</span><span id="val-exp2-do" class="text-amber-400 font-bold">${expState[2].do} سم</span></label>
-                        <input type="range" min="30" max="250" step="5" value="${expState[2].do}" oninput="updateExp2('do', this.value)" class="w-full">
-                    </div>
-                `;
-            } else if (currentExpId === 3) {
-                titleDiv.innerHTML = `<i class="fa-solid fa-sliders"></i> لوحة التحكم - المرايا الكروية`;
-                explDiv.innerHTML = `تخضع المرايا الكروية (المقعرة والمحدبة) لمعادلة المرآة نفسها: 1/f = 1/dₒ + 1/dᵢ مع مراعاة اصطلاح الإشارات للمرايا المقعرة والمحدبة.`;
-                
-                stepsDiv.innerHTML = `
-                    <div class="p-3 rounded-xl bg-black/30 border border-gray-800"><span class="text-amber-400 font-bold">1. قبل التجربة:</span> كيف تختلف صفات الصورة في المرآة المحدبة عن المرآة المقعرة؟</div>
-                    <div class="p-3 rounded-xl bg-black/30 border border-gray-800"><span class="text-sky-400 font-bold">2. نفّذي التجربة:</span> حركي الجسم أمام المرآة الكروية لمشاهدة الأشعة المنعكسة.</div>
-                `;
-
-                controlsDiv.innerHTML = `
-                    <div>
-                        <label class="text-xs text-gray-400 mb-1 block">نوع المرآة</label>
-                        <select onchange="updateExp3('type', this.value)" class="w-full bg-[#0b0f19] border border-gray-700 rounded-xl p-2.5 text-sm">
-                            <option value="concave" ${expState[3].type==='concave'?'selected':''}>مرآة مقعرة (مجمّعة)</option>
-                            <option value="convex" ${expState[3].type==='convex'?'selected':''}>مرآة محدبة (مفرّقة)</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="text-xs text-gray-400 flex justify-between mb-1"><span>البعد البؤري (f)</span><span id="val-exp3-f" class="text-amber-400 font-bold">${expState[3].f} سم</span></label>
-                        <input type="range" min="20" max="80" step="5" value="${expState[3].f}" oninput="updateExp3('f', this.value)" class="w-full">
-                    </div>
-                    <div>
-                        <label class="text-xs text-gray-400 flex justify-between mb-1"><span>بعد الجسم (dₒ)</span><span id="val-exp3-do" class="text-amber-400 font-bold">${expState[3].do} سم</span></label>
-                        <input type="range" min="20" max="200" step="5" value="${expState[3].do}" oninput="updateExp3('do', this.value)" class="w-full">
-                    </div>
-                `;
-            } else if (currentExpId === 4) {
-                titleDiv.innerHTML = `<i class="fa-solid fa-sliders"></i> لوحة التحكم - الاستضاءة`;
-                explDiv.innerHTML = `ينص قانون التربيع العكسي في الاستضاءة على أن الاستضاءة (E) تتناسب عكسياً مع مربع البعد عن المصدر الضوئي: E = P / (4πr²).`;
-                
-                stepsDiv.innerHTML = `
-                    <div class="p-3 rounded-xl bg-black/30 border border-gray-800"><span class="text-amber-400 font-bold">1. قبل التجربة:</span> ماذا تتوقع أن يحدث لشدة الاستضاءة إذا ضاعفنا المسافة بين السطح والمصدر الضوئي؟</div>
-                    <div class="p-3 rounded-xl bg-black/30 border border-gray-800"><span class="text-sky-400 font-bold">2. نفّذي التجربة:</span> غيري التدفق الضوئي والمسافة ولاحظي قيمة الاستضاءة باللوكس.</div>
-                `;
-
-                controlsDiv.innerHTML = `
-                    <div>
-                        <label class="text-xs text-gray-400 flex justify-between mb-1"><span>التدفق الضوئي (P) [لومن]</span><span id="val-power" class="text-amber-400 font-bold">${expState[4].power} lm</span></label>
-                        <input type="range" min="500" max="5000" step="100" value="${expState[4].power}" oninput="updateExp4('power', this.value)" class="w-full">
-                    </div>
-                    <div>
-                        <label class="text-xs text-gray-400 flex justify-between mb-1"><span>المسافة (r) [متر]</span><span id="val-distance" class="text-amber-400 font-bold">${expState[4].distance} م</span></label>
-                        <input type="range" min="0.5" max="5.0" step="0.1" value="${expState[4].distance}" oninput="updateExp4('distance', this.value)" class="w-full">
-                    </div>
-                `;
-            } else if (currentExpId === 5) {
-                titleDiv.innerHTML = `<i class="fa-solid fa-sliders"></i> لوحة التحكم - التداخل والحيود`;
-                explDiv.innerHTML = `تجربة الشق المزدوج ليونغ توضح الطبيعة الموجية للضوء، حيث تحسب المسافة بين الأهداب الضوئية عبر العلاقة: λ = (x · d) / L.`;
-                
-                stepsDiv.innerHTML = `
-                    <div class="p-3 rounded-xl bg-black/30 border border-gray-800"><span class="text-amber-400 font-bold">1. قبل التجربة:</span> كيف يؤثر زيادة الطول الموجي للضوء في مسافة الفاصل بين الأهداب المتداخلة؟</div>
-                    <div class="p-3 rounded-xl bg-black/30 border border-gray-800"><span class="text-sky-400 font-bold">2. نفّذي التجربة:</span> عدلي الطول الموجي أو المسافة بين الشقين ولاحظي التغير في النمط.</div>
-                `;
-
-                controlsDiv.innerHTML = `
-                    <div>
-                        <label class="text-xs text-gray-400 flex justify-between mb-1"><span>الطول الموجي (λ) [نانومتر]</span><span id="val-wavelength" class="text-amber-400 font-bold">${expState[5].wavelength} نانومتر</span></label>
-                        <input type="range" min="400" max="750" step="10" value="${expState[5].wavelength}" oninput="updateExp5('wavelength', this.value)" class="w-full">
-                    </div>
-                    <div>
-                        <label class="text-xs text-gray-400 flex justify-between mb-1"><span>المسافة بين الشقين (d) [مم]</span><span id="val-d" class="text-amber-400 font-bold">${expState[5].d} مم</span></label>
-                        <input type="range" min="0.1" max="1.5" step="0.05" value="${expState[5].d}" oninput="updateExp5('d', this.value)" class="w-full">
-                    </div>
-                `;
-            }
-
-            drawSimulation();
-        }
-
-        function updateExp1(param, val) { 
-            expState[1][param] = parseFloat(val); 
-            if(param!=='angle') {
-                const el = document.getElementById(`val-${param}`);
-                if(el) el.innerText = val;
-            } else {
-                const el = document.getElementById('val-angle');
-                if(el) el.innerText = expState[1].angle + '°';
-            }
-            drawSimulation(); 
-        }
-
-        function updateExp2(param, val) { 
-            expState[2][param] = param==='type'?val:parseFloat(val); 
-            if(param === 'f') { const el = document.getElementById('val-exp2-f'); if(el) el.innerText = val + ' سم'; }
-            if(param === 'do') { const el = document.getElementById('val-exp2-do'); if(el) el.innerText = val + ' سم'; }
-            drawSimulation(); 
-        }
-
-        function updateExp3(param, val) { 
-            expState[3][param] = param==='type'?val:parseFloat(val); 
-            if(param === 'f') { const el = document.getElementById('val-exp3-f'); if(el) el.innerText = val + ' سم'; }
-            if(param === 'do') { const el = document.getElementById('val-exp3-do'); if(el) el.innerText = val + ' سم'; }
-            drawSimulation(); 
-        }
-
-        function updateExp4(param, val) { 
-            expState[4][param] = parseFloat(val); 
-            if(param === 'power') { const el = document.getElementById('val-power'); if(el) el.innerText = val + ' lm'; }
-            if(param === 'distance') { const el = document.getElementById('val-distance'); if(el) el.innerText = val + ' م'; }
-            drawSimulation(); 
-        }
-
-        function updateExp5(param, val) { 
-            expState[5][param] = parseFloat(val); 
-            if(param === 'wavelength') { const el = document.getElementById('val-wavelength'); if(el) el.innerText = val + ' نانومتر'; }
-            if(param === 'd') { const el = document.getElementById('val-d'); if(el) el.innerText = val + ' مم'; }
-            drawSimulation(); 
-        }
-
-        // Fully Interactive Ray-Tracing and Simulation Canvas Drawing
-        function drawSimulation() {
-            const canvas = document.getElementById('simCanvas');
-            if(!canvas) return;
-            const ctx = canvas.getContext('2d');
-            const liveRes = document.getElementById('live-results');
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-            const w = canvas.width;
-            const h = canvas.height;
-            const cx = w / 2;
-            const cy = h / 2;
-
-            if (currentExpId === 1) {
-                // Experiment 1: Refraction
-                const n1 = expState[1].n1;
-                const n2 = expState[1].n2;
-                const theta1Deg = expState[1].angle;
-                const theta1Rad = (theta1Deg * Math.PI) / 180;
-
-                let sinTheta2 = (n1 * Math.sin(theta1Rad)) / n2;
-                let isTIR = sinTheta2 > 1.0;
-                let theta2Deg = isTIR ? 'انعكاس كلي' : ((Math.asin(sinTheta2) * 180) / Math.PI).toFixed(1) + '°';
-
-                ctx.fillStyle = '#0f172a';
-                ctx.fillRect(0, cy, w, cy);
-                ctx.fillStyle = 'rgba(56, 189, 248, 0.05)';
-                ctx.fillRect(0, 0, w, cy);
-
-                ctx.strokeStyle = 'rgba(255,255,255,0.2)';
-                ctx.setLineDash([4, 4]);
-                ctx.beginPath();
-                ctx.moveTo(cx, 20);
-                ctx.lineTo(cx, h - 20);
-                ctx.stroke();
-                ctx.setLineDash([]);
-
-                const rayLen = 160;
-                const startX = cx - rayLen * Math.sin(theta1Rad);
-                const startY = cy - rayLen * Math.cos(theta1Rad);
-
-                ctx.strokeStyle = '#f59e0b';
-                ctx.lineWidth = 3;
-                ctx.beginPath();
-                ctx.moveTo(startX, startY);
-                ctx.lineTo(cx, cy);
-                ctx.stroke();
-
-                if (isTIR) {
-                    ctx.strokeStyle = '#ef4444';
-                    const refX = cx + rayLen * Math.sin(theta1Rad);
-                    const refY = cy - rayLen * Math.cos(theta1Rad);
-                    ctx.beginPath();
-                    ctx.moveTo(cx, cy);
-                    ctx.lineTo(refX, refY);
-                    ctx.stroke();
-                } else {
-                    const theta2Rad = Math.asin(sinTheta2);
-                    ctx.strokeStyle = '#38bdf8';
-                    const endX = cx + rayLen * Math.sin(theta2Rad);
-                    const endY = cy + rayLen * Math.cos(theta2Rad);
-                    ctx.beginPath();
-                    ctx.moveTo(cx, cy);
-                    ctx.lineTo(endX, endY);
-                    ctx.stroke();
-                }
-
-                liveRes.innerHTML = `
-                    <div class="glass-panel p-3 rounded-xl border border-gray-800 text-center"><span class="text-xs text-gray-400 block">الوسط الأول (n₁)</span><span class="font-bold text-amber-400">${n1}</span></div>
-                    <div class="glass-panel p-3 rounded-xl border border-gray-800 text-center"><span class="text-xs text-gray-400 block">الوسط الثاني (n₂)</span><span class="font-bold text-sky-400">${n2}</span></div>
-                    <div class="glass-panel p-3 rounded-xl border border-gray-800 text-center"><span class="text-xs text-gray-400 block">زاوية الانكسار (θ₂)</span><span class="font-bold text-emerald-400">${theta2Deg}</span></div>
-                `;
-            } else if (currentExpId === 2) {
-                // Experiment 2: Lenses
-                const f = expState[2].f;
-                const do_val = expState[2].do;
-                let di = do_val === f ? 0 : (f * do_val) / (do_val - f);
-                let m = do_val === f ? 0 : -di / do_val;
-                let imgType = do_val === f ? 'عند اللانهاية' : (di > 0 ? 'حقيقية ومقلوبة' : 'خيالية ومعتدلة');
-
-                ctx.strokeStyle = 'rgba(255,255,255,0.2)';
-                ctx.lineWidth = 1.5;
-                ctx.beginPath();
-                ctx.moveTo(20, cy);
-                ctx.lineTo(w - 20, cy);
-                ctx.stroke();
-
-                // Lens
-                ctx.strokeStyle = '#38bdf8';
-                ctx.lineWidth = 4;
-                ctx.beginPath();
-                ctx.arc(cx, cy - 40, 90, Math.PI/3, 2*Math.PI/3);
-                ctx.stroke();
-
-                // Object
-                const objX = cx - (do_val * 0.9);
-                ctx.fillStyle = '#f59e0b';
-                ctx.fillRect(objX - 4, cy - 50, 8, 50);
-                ctx.fillStyle = '#f59e0b';
-                ctx.fillText("جسم", objX - 10, cy + 20);
-
-                // Rays
-                ctx.strokeStyle = 'rgba(245, 158, 11, 0.6)';
-                ctx.lineWidth = 2;
-                ctx.beginPath();
-                ctx.moveTo(objX, cy - 50);
-                ctx.lineTo(cx, cy - 50);
-                if(do_val !== f) {
-                    let imgX = cx + (di * 0.9);
-                    let imgH = 50 * m;
-                    ctx.lineTo(imgX, cy - imgH);
-                }
-                ctx.stroke();
-
-                liveRes.innerHTML = `
-                    <div class="glass-panel p-3 rounded-xl border border-gray-800 text-center"><span class="text-xs text-gray-400 block">بعد الصورة (dᵢ)</span><span class="font-bold text-amber-400">${do_val===f?'غير مهيأة':di.toFixed(1) + ' سم'}</span></div>
-                    <div class="glass-panel p-3 rounded-xl border border-gray-800 text-center"><span class="text-xs text-gray-400 block">التكبير (m)</span><span class="font-bold text-sky-400">${do_val===f?'-':m.toFixed(2)}</span></div>
-                    <div class="glass-panel p-3 rounded-xl border border-gray-800 text-center"><span class="text-xs text-gray-400 block">صفات الصورة</span><span class="font-bold text-emerald-400">${imgType}</span></div>
-                `;
-            } else if (currentExpId === 3) {
-                // Experiment 3: Spherical Mirrors
-                const f = expState[3].f;
-                const do_val = expState[3].do;
-                let di = do_val === f ? 0 : (f * do_val) / (do_val - f);
-                let m = do_val === f ? 0 : -di / do_val;
-                let mirrorType = expState[3].type === 'concave' ? 'مقعرة' : 'محدبة';
-
-                // Optical Axis
-                ctx.strokeStyle = 'rgba(255,255,255,0.2)';
-                ctx.lineWidth = 1.5;
-                ctx.beginPath();
-                ctx.moveTo(20, cy);
-                ctx.lineTo(w - 20, cy);
-                ctx.stroke();
-
-                // Draw Mirror Curve
-                ctx.strokeStyle = '#f59e0b';
-                ctx.lineWidth = 5;
-                ctx.beginPath();
-                if (expState[3].type === 'concave') {
-                    ctx.arc(cx + 60, cy, 90, Math.PI*0.7, Math.PI*1.3);
-                } else {
-                    ctx.arc(cx - 60, cy, 90, Math.PI*1.7, Math.PI*0.3);
-                }
-                ctx.stroke();
-
-                // Object
-                const objX = cx - (do_val * 0.8);
-                ctx.fillStyle = '#38bdf8';
-                ctx.fillRect(objX - 4, cy - 50, 8, 50);
-                ctx.fillStyle = '#38bdf8';
-                ctx.fillText("جسم", objX - 12, cy + 20);
-
-                // Incident and reflected ray simulation
-                ctx.strokeStyle = 'rgba(56, 189, 248, 0.7)';
-                ctx.lineWidth = 2;
-                ctx.beginPath();
-                ctx.moveTo(objX, cy - 50);
-                ctx.lineTo(cx, cy - 50);
-                ctx.lineTo(cx + 40, cy + 30);
-                ctx.stroke();
-
-                liveRes.innerHTML = `
-                    <div class="glass-panel p-3 rounded-xl border border-gray-800 text-center"><span class="text-xs text-gray-400 block">نوع المرآة</span><span class="font-bold text-amber-400">${mirrorType}</span></div>
-                    <div class="glass-panel p-3 rounded-xl border border-gray-800 text-center"><span class="text-xs text-gray-400 block">بعد الصورة (dᵢ)</span><span class="font-bold text-sky-400">${di.toFixed(1)} سم</span></div>
-                    <div class="glass-panel p-3 rounded-xl border border-gray-800 text-center"><span class="text-xs text-gray-400 block">التكبير (m)</span><span class="font-bold text-emerald-400">${m.toFixed(2)}</span></div>
-                `;
-            } else if (currentExpId === 4) {
-                // Experiment 4: Illumination
-                const P = expState[4].power;
-                const r = expState[4].distance;
-                const E = P / (4 * Math.PI * r * r);
-
-                // Draw Light Source Bulb
-                ctx.fillStyle = '#f59e0b';
-                ctx.beginPath();
-                ctx.arc(100, cy, 25, 0, 2 * Math.PI);
-                ctx.fill();
-
-                // Draw Light Rays spreading out
-                ctx.strokeStyle = 'rgba(245, 158, 11, 0.4)';
-                ctx.lineWidth = 2;
-                for (let a = -0.6; a <= 0.6; a += 0.3) {
-                    ctx.beginPath();
-                    ctx.moveTo(100, cy);
-                    ctx.lineTo(w - 100, cy + a * 200);
-                    ctx.stroke();
-                }
-
-                // Draw Target Surface at distance r
-                let surfaceX = 100 + (r * 100);
-                if (surfaceX > w - 80) surfaceX = w - 80;
-                ctx.strokeStyle = '#38bdf8';
-                ctx.lineWidth = 6;
-                ctx.beginPath();
-                ctx.moveTo(surfaceX, cy - 90);
-                ctx.lineTo(surfaceX, cy + 90);
-                ctx.stroke();
-                ctx.fillStyle = '#38bdf8';
-                ctx.fillText(`سطح استقبال (على بعد ${r}م)`, surfaceX - 50, cy - 100);
-
-                liveRes.innerHTML = `
-                    <div class="glass-panel p-3 rounded-xl border border-gray-800 text-center"><span class="text-xs text-gray-400 block">التدفق الضوئي (P)</span><span class="font-bold text-amber-400">${P} لومن</span></div>
-                    <div class="glass-panel p-3 rounded-xl border border-gray-800 text-center"><span class="text-xs text-gray-400 block">المسافة (r)</span><span class="font-bold text-sky-400">${r} م</span></div>
-                    <div class="glass-panel p-3 rounded-xl border border-gray-800 text-center"><span class="text-xs text-gray-400 block">شدة الاستضاءة (E)</span><span class="font-bold text-emerald-400">${E.toFixed(1)} لوكس (lx)</span></div>
-                `;
-            } else if (currentExpId === 5) {
-                // Experiment 5: Interference and Diffraction
-                const lam = expState[5].wavelength;
-                const d = expState[5].d;
-                const L = expState[5].L;
-                const fringeDist = (lam * 1e-9 * L * 1000) / (d * 1e-3);
-
-                // Draw Slits Barrier
-                ctx.fillStyle = '#94a3b8';
-                ctx.fillRect(cx - 100, 40, 8, 320);
-                // Slits opening
-                ctx.clearRect(cx - 100, cy - 20, 8, 15);
-                ctx.clearRect(cx - 100, cy + 10, 8, 15);
-
-                // Laser Beam
-                ctx.fillStyle = 'rgba(239, 68, 68, 0.4)';
-                ctx.fillRect(50, cy - 8, cx - 150, 16);
-
-                // Interference Pattern Bands on screen
-                for (let i = -5; i <= 5; i++) {
-                    let alpha = Math.max(0.1, 1 - Math.abs(i) * 0.15);
-                    ctx.fillStyle = `rgba(56, 189, 248, ${alpha})`;
-                    ctx.fillRect(w - 120 + i * 18 - 3, 60, 6, 280);
-                }
-
-                liveRes.innerHTML = `
-                    <div class="glass-panel p-3 rounded-xl border border-gray-800 text-center"><span class="text-xs text-gray-400 block">الطول الموجي (λ)</span><span class="font-bold text-amber-400">${lam} نانومتر</span></div>
-                    <div class="glass-panel p-3 rounded-xl border border-gray-800 text-center"><span class="text-xs text-gray-400 block">المسافة بين الشقين</span><span class="font-bold text-sky-400">${d} مم</span></div>
-                    <div class="glass-panel p-3 rounded-xl border border-gray-800 text-center"><span class="text-xs text-gray-400 block">الفاصل بين الأهداب</span><span class="font-bold text-emerald-400">${fringeDist.toFixed(2)} مم</span></div>
-                `;
-            }
-        }
-
-        const lawsData = [
-            { name: "قانون سنل في الانكسار", formula: "n₁ sin(θ₁) = n₂ sin(θ₂)", desc: "يربط زوايا السقوط والانكسار لمعاملات انكسار الوسطين.", units: "بدون وحدة (زوايا ومعاملات انكسار)" },
-            { name: "معادلة العدسات والمرايا الرقيقة", formula: "1/f = 1/dₒ + 1/dᵢ", desc: "تحدد العلاقة الرياضية بين البعد البؤري وبعد الجسم وبعد الصورة.", units: "سم أو متر (cm / m)" },
-            { name: "علاقة التكبير", formula: "m = hᵢ/hₒ = −dᵢ/dₒ", desc: "تحسب نسبة طول الصورة إلى طول الجسم وتحدد خصائصها.", units: "بدون وحدة" },
-            { name: "قانون الاستضاءة (التربيع العكسي)", formula: "E = P / (4πr²)", desc: "يحسب شدة الاستضاءة السطحية الناتجة عن مصدر ضوئي نقطي.", units: "لوكس (lx)" },
-            { name: "تجربة الشق المزدوج ليونغ", formula: "λ = (x · d) / L", desc: "لحساب الطول الموجي للضوء باستخدام تداخل الأهداب الضوئية.", units: "نانومتر (nm) أو متر" }
+    function compute1(s) {
+        const n1 = s.n1, n2 = s.n2, th1 = rad(s.angle);
+        const ratio = n1 * Math.sin(th1) / n2;
+        const tir = ratio > 1;
+        const th2 = tir ? null : Math.asin(ratio);
+        const thc = n1 > n2 ? Math.asin(n2 / n1) : null;
+        const warnings = [];
+        if (n1 === n2) warnings.push({ level: 'info', text: 'n₁ = n₂: لا يحدث انحراف للشعاع لأن الوسطين متماثلان بصرياً.' });
+        if (tir) warnings.push({ level: 'warn', text: `انعكاس كلي داخلي: θ₁ (${s.angle}°) أكبر من الزاوية الحرجة θc (${deg(thc).toFixed(1)}°).` });
+        const results = [
+            { label: 'زاوية الانكسار (θ₂)', value: tir ? 'انعكاس كلي' : deg(th2).toFixed(1), unit: tir ? '' : '°' },
+            { label: 'الزاوية الحرجة (θc)', value: thc === null ? 'لا توجد' : deg(thc).toFixed(1), unit: thc === null ? '' : '°' },
+            { label: 'سرعة الضوء في الوسط الأول', value: (3 / n1).toFixed(2), unit: '×10⁸ م/ث' },
+            { label: 'سرعة الضوء في الوسط الثاني', value: (3 / n2).toFixed(2), unit: '×10⁸ م/ث' }
         ];
+        return { results, warnings, data: { n1, n2, th1, th2, tir, thc, ratio } };
+    }
 
-        function renderLaws() {
-            const container = document.getElementById('laws-container');
-            if(!container) return;
-            container.innerHTML = lawsData.map(law => `
-                <div class="glass-panel p-6 rounded-2xl border border-gray-800 space-y-3">
-                    <h3 class="font-bold text-lg text-amber-400">${law.name}</h3>
-                    <div class="p-3 rounded-xl bg-black/40 border border-gray-800 font-mono text-sky-300 text-center text-lg">${law.formula}</div>
-                    <p class="text-gray-300 text-sm">${law.desc}</p>
-                    <p class="text-xs text-gray-400"><strong>وحدات القياس:</strong> ${law.units}</p>
-                </div>
-            `).join('');
+    function compute2(s) {
+        const fs = s.type === 'convex' ? s.f : -s.f;
+        const c = imageCore(fs, s.do, s.ho);
+        return lensMirrorResult(c, s, 'lens');
+    }
+
+    function compute3(s) {
+        const fs = s.type === 'concave' ? s.f : -s.f;
+        const c = imageCore(fs, s.do, s.ho);
+        return lensMirrorResult(c, s, 'mirror');
+    }
+
+    function lensMirrorResult(c, s, kind) {
+        const warnings = [];
+        const nature = c.infinite ? 'في اللانهاية' : (c.virtual ? 'خيالية' : 'حقيقية');
+        const orient = c.infinite ? '—' : (c.m < 0 ? 'مقلوبة' : 'معتدلة');
+        const size = c.infinite ? '—' : (Math.abs(c.m) > 1.001 ? 'مكبّرة' : (Math.abs(c.m) < 0.999 ? 'مصغّرة' : 'بالحجم نفسه'));
+        if (c.infinite) warnings.push({ level: 'info', text: 'الجسم في البؤرة تماماً: الأشعة الخارجة متوازية والصورة في اللانهاية.' });
+        else if (c.virtual) warnings.push({ level: 'info', text: 'الصورة خيالية: تتكوّن في جهة الجسم (العدسة) أو خلف المرآة، وتُرسم الأشعة الممتدة بخط متقطع.' });
+        if (!c.infinite && Math.abs(c.di) * LENS_PX_PER_CM > 300)
+            warnings.push({ level: 'warn', text: 'موضع الصورة يقع خارج حدود الشاشة؛ الحساب دقيق لكن الرسم مقتطع.' });
+        const power = 100 / c.fs; // بالديوبتر، f بالسنتيمتر
+        const results = [
+            { label: c.infinite ? 'بعد الصورة (dᵢ)' : 'بعد الصورة (dᵢ)', value: c.infinite ? '∞' : c.di.toFixed(1), unit: c.infinite ? '' : 'سم' },
+            { label: 'التكبير (m)', value: c.infinite ? '—' : c.m.toFixed(2), unit: '' },
+            { label: 'ارتفاع الصورة (hᵢ)', value: c.infinite ? '—' : c.hi.toFixed(1), unit: c.infinite ? '' : 'سم' },
+            { label: kind === 'lens' ? 'القدرة البصرية (P)' : 'نصف قطر الانحناء (R)', value: kind === 'lens' ? power.toFixed(2) : (2 * c.fs).toFixed(1), unit: kind === 'lens' ? 'D' : 'سم' },
+            { label: 'طبيعة الصورة', value: `${nature} / ${orient} / ${size}`, unit: '' }
+        ];
+        return { results, warnings, data: { ...c, kind, ho: s.ho } };
+    }
+
+    function compute4(s) {
+        const I = s.power / (4 * Math.PI);
+        const cosT = Math.cos(rad(s.angle));
+        const E = I * cosT / (s.distance * s.distance);
+        const Eref = s.power / (4 * Math.PI * 0.25) * Math.cos(rad(s.angle)); // قيمة مرجعية لضبط السطوع
+        const warnings = [];
+        if (s.angle > 0) warnings.push({ level: 'info', text: `السطح مائل بزاوية ${s.angle}°، لذلك ضُرب قانون التربيع العكسي في cos θ.` });
+        if (s.angle >= 70) warnings.push({ level: 'warn', text: 'عند الزوايا الكبيرة يقل cos θ بشدة، فتصبح الاستضاءة صغيرة جداً.' });
+        if (E < 1) warnings.push({ level: 'warn', text: 'الاستضاءة أقل من 1 لوكس؛ القيمة منخفضة جداً للإضاءة العملية.' });
+        const results = [
+            { label: 'شدة المصدر (I)', value: I.toFixed(1), unit: 'cd' },
+            { label: 'شدة الاستضاءة (E)', value: E.toFixed(1), unit: 'lx' },
+            { label: 'الاستضاءة بعد مضاعفة المسافة', value: (E / 4).toFixed(1), unit: 'lx' },
+            { label: 'زاوية السقوط (θ)', value: String(s.angle), unit: '°' }
+        ];
+        return { results, warnings, data: { P: s.power, r: s.distance, th: rad(s.angle), E, Eref: Math.max(Eref, 1e-9) } };
+    }
+
+    function compute5(s) {
+        // Δy بالمليمتر: λ[nm] · L[m] / d[mm] × 10⁻³
+        const dy = s.wavelength * s.L / s.d * 1e-3;
+        const Ys = 3.2 * dy;
+        const warnings = [];
+        if (dy < 0.3) warnings.push({ level: 'warn', text: 'الأهداب ضيقة نسبياً ويصعب رصد تفاصيلها؛ زد بعد الشاشة L أو قلّل المسافة d.' });
+        if (dy > 20) warnings.push({ level: 'info', text: 'الأهداب واسعة جداً، والشاشة تعرض جزءاً صغيراً منها.' });
+        const results = [
+            { label: 'الفاصل بين الأهداب (Δy)', value: dy.toFixed(2), unit: 'مم' },
+            { label: 'الطول الموجي (λ)', value: String(s.wavelength), unit: 'نانومتر' },
+            { label: 'المسافة بين الشقين (d)', value: s.d.toFixed(2), unit: 'مم' },
+            { label: 'بعد الشاشة (L)', value: s.L.toFixed(1), unit: 'م' }
+        ];
+        return { results, warnings, data: { dy, Ys } };
+    }
+
+    const COMPUTE = { 1: compute1, 2: compute2, 3: compute3, 4: compute4, 5: compute5 };
+
+    // ---------- رسم أدوات مساعدة ----------
+    function line(ctx, x1, y1, x2, y2) { ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke(); }
+
+    function drawArrow(ctx, x1, y1, x2, y2, color, width, dashed) {
+        ctx.save();
+        ctx.strokeStyle = color; ctx.fillStyle = color; ctx.lineWidth = width;
+        ctx.setLineDash(dashed ? [7, 5] : []);
+        line(ctx, x1, y1, x2, y2);
+        const a = Math.atan2(y2 - y1, x2 - x1);
+        ctx.setLineDash([]);
+        ctx.beginPath();
+        ctx.moveTo(x2, y2);
+        ctx.lineTo(x2 - 11 * Math.cos(a - 0.42), y2 - 11 * Math.sin(a - 0.42));
+        ctx.lineTo(x2 - 11 * Math.cos(a + 0.42), y2 - 11 * Math.sin(a + 0.42));
+        ctx.closePath(); ctx.fill();
+        ctx.restore();
+    }
+
+    function glowDot(ctx, x, y, r, color) {
+        ctx.save();
+        ctx.shadowColor = color; ctx.shadowBlur = 12;
+        ctx.fillStyle = color;
+        ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill();
+        ctx.restore();
+    }
+
+    // حركة الفوتونات على مسار متعدد القطع. الأوزان تمثل معامل الانكسار:
+    // الزمن = المسافة × n، لذلك تتحرك الحزم أبطأ في الوسط الأكثر كثافة بصرياً.
+    function drawPackets(ctx, pts, weights, colors, t, speed, count) {
+        const cum = [0];
+        for (let i = 1; i < pts.length; i++) {
+            const w = weights ? weights[i - 1] : 1;
+            cum.push(cum[i - 1] + Math.hypot(pts[i].x - pts[i - 1].x, pts[i].y - pts[i - 1].y) * w);
+        }
+        const total = cum[cum.length - 1];
+        if (!(total > 0)) return;
+        for (let k = 0; k < count; k++) {
+            const s = (t * speed + k * total / count) % total;
+            let i = 1;
+            while (i < pts.length - 1 && cum[i] < s) i++;
+            const segW = cum[i] - cum[i - 1];
+            const f = segW > 0 ? (s - cum[i - 1]) / segW : 0;
+            const x = pts[i - 1].x + (pts[i].x - pts[i - 1].x) * f;
+            const y = pts[i - 1].y + (pts[i].y - pts[i - 1].y) * f;
+            glowDot(ctx, x, y, 3.5, colors[i - 1] || '#ffffff');
+        }
+    }
+
+    // نقطة خروج الشعاع عند حافة اللوحة
+    function rayExit(p, d) {
+        let tMin = Infinity;
+        if (d.x > 1e-9) tMin = Math.min(tMin, (SIM_W - p.x) / d.x);
+        if (d.x < -1e-9) tMin = Math.min(tMin, (0 - p.x) / d.x);
+        if (d.y > 1e-9) tMin = Math.min(tMin, (SIM_H - p.y) / d.y);
+        if (d.y < -1e-9) tMin = Math.min(tMin, (0 - p.y) / d.y);
+        if (!isFinite(tMin) || tMin < 0) tMin = 0;
+        return { x: p.x + d.x * tMin, y: p.y + d.y * tMin };
+    }
+
+    function unitVec(dx, dy) { const l = Math.hypot(dx, dy) || 1; return { x: dx / l, y: dy / l }; }
+
+    // شعاع خارج من نقطة محورية (عدسة أو مرآة) نحو الصورة أو مبتعداً عنها للصورة الخيالية
+    function outgoingRay(ctx, pivot, I, virtual, color) {
+        const dir = virtual ? unitVec(pivot.x - I.x, pivot.y - I.y) : unitVec(I.x - pivot.x, I.y - pivot.y);
+        const ex = rayExit(pivot, dir);
+        ctx.save();
+        ctx.strokeStyle = color; ctx.lineWidth = 2;
+        if (virtual) {
+            ctx.setLineDash([6, 5]);
+            line(ctx, pivot.x, pivot.y, I.x, I.y);
+            ctx.setLineDash([]);
+        }
+        line(ctx, pivot.x, pivot.y, ex.x, ex.y);
+        ctx.restore();
+        return ex;
+    }
+
+    function arcBetween(ctx, x, y, r, a1, a2) {
+        let diff = a2 - a1;
+        while (diff > Math.PI) diff -= 2 * Math.PI;
+        while (diff < -Math.PI) diff += 2 * Math.PI;
+        ctx.beginPath();
+        ctx.arc(x, y, r, a1, a1 + diff, diff < 0);
+        ctx.stroke();
+        return a1 + diff / 2;
+    }
+
+    function wavelengthRGB(nm) {
+        let r = 0, g = 0, b = 0;
+        if (nm >= 380 && nm < 440) { r = -(nm - 440) / 60; b = 1; }
+        else if (nm < 490) { g = (nm - 440) / 50; b = 1; }
+        else if (nm < 510) { g = 1; b = -(nm - 510) / 20; }
+        else if (nm < 580) { r = (nm - 510) / 70; g = 1; }
+        else if (nm < 645) { r = 1; g = -(nm - 645) / 65; }
+        else if (nm <= 780) { r = 1; }
+        return [Math.round(r * 255), Math.round(g * 255), Math.round(b * 255)];
+    }
+
+    function drawHUD(ctx) {
+        ctx.save();
+        ctx.font = '12px Cairo, sans-serif';
+        ctx.textAlign = 'right';
+        ctx.fillStyle = 'rgba(255,255,255,0.6)';
+        ctx.fillText(`الزمن ${sim.t.toFixed(1)} ث   |   السرعة ×${sim.speed}   |   ${sim.running ? 'يعمل' : 'متوقف'}`, SIM_W - 12, SIM_H - 10);
+        ctx.restore();
+    }
+
+    // ---------- الرسوم المتحركة ----------
+    function drawRefraction(ctx, t, c) {
+        const cx = SIM_W / 2, cy = SIM_H / 2, R = 165;
+        const d = c.data;
+        ctx.fillStyle = `rgba(56,189,248,${(0.05 + 0.05 * (d.n1 - 1)).toFixed(3)})`; ctx.fillRect(0, 0, SIM_W, cy);
+        ctx.fillStyle = `rgba(245,158,11,${(0.04 + 0.06 * (d.n2 - 1)).toFixed(3)})`; ctx.fillRect(0, cy, SIM_W, cy);
+
+        ctx.strokeStyle = 'rgba(255,255,255,0.45)'; ctx.lineWidth = 2; ctx.setLineDash([]);
+        line(ctx, 0, cy, SIM_W, cy);
+        ctx.strokeStyle = 'rgba(255,255,255,0.25)'; ctx.lineWidth = 1.5; ctx.setLineDash([5, 5]);
+        line(ctx, cx, 20, cx, SIM_H - 20); ctx.setLineDash([]);
+
+        ctx.font = '14px Cairo, sans-serif'; ctx.textAlign = 'left';
+        ctx.fillStyle = '#38bdf8'; ctx.fillText(`الوسط الأول   n₁ = ${d.n1.toFixed(2)}   (v = ${(3 / d.n1).toFixed(2)}×10⁸ م/ث)`, 14, 26);
+        ctx.fillStyle = '#f59e0b'; ctx.fillText(`الوسط الثاني   n₂ = ${d.n2.toFixed(2)}   (v = ${(3 / d.n2).toFixed(2)}×10⁸ م/ث)`, 14, SIM_H - 40);
+
+        const A = { x: cx - R * Math.sin(d.th1), y: cy - R * Math.cos(d.th1) };
+        const P = { x: cx, y: cy };
+        let B, col2;
+        if (d.tir) { B = { x: cx + R * Math.sin(d.th1), y: cy - R * Math.cos(d.th1) }; col2 = '#ef4444'; }
+        else { B = { x: cx + R * Math.sin(d.th2), y: cy + R * Math.cos(d.th2) }; col2 = '#38bdf8'; }
+
+        drawArrow(ctx, A.x, A.y, P.x, P.y, '#f59e0b', 3);
+        drawArrow(ctx, P.x, P.y, B.x, B.y, col2, 3);
+
+        // الحزم الضوئية: أبطأ في الوسط الأعلى n
+        drawPackets(ctx, [A, P, B], [d.n1, d.tir ? d.n1 : d.n2], ['#f59e0b', col2], t, 120, 7);
+
+        // الزوايا
+        ctx.font = '13px Cairo, sans-serif'; ctx.textAlign = 'center';
+        ctx.strokeStyle = 'rgba(245,158,11,0.8)'; ctx.lineWidth = 1.5;
+        const aA = Math.atan2(A.y - P.y, A.x - P.x);
+        const mid1 = arcBetween(ctx, cx, cy, 52, aA, -Math.PI / 2);
+        ctx.fillStyle = '#f59e0b'; ctx.fillText(`θ₁ = ${deg(d.th1).toFixed(0)}°`, cx + 70 * Math.cos(mid1), cy + 70 * Math.sin(mid1));
+        ctx.strokeStyle = col2;
+        const aB = Math.atan2(B.y - P.y, B.x - P.x);
+        const normalAng = d.tir ? -Math.PI / 2 : Math.PI / 2;
+        const mid2 = arcBetween(ctx, cx, cy, 52, normalAng, aB);
+        ctx.fillStyle = col2;
+        ctx.fillText(d.tir ? 'انعكاس' : `θ₂ = ${(deg(d.th2)).toFixed(1)}°`, cx + 70 * Math.cos(mid2), cy + 70 * Math.sin(mid2));
+        if (d.tir) {
+            ctx.fillStyle = '#ef4444'; ctx.textAlign = 'center';
+            ctx.fillText('انعكاس كلي داخلي', cx, SIM_H / 2 + 110);
+        }
+        drawHUD(ctx);
+    }
+
+    function drawLens(ctx, t, c, s) {
+        const cx = LENS_CX, cy = SIM_H / 2, k = LENS_PX_PER_CM;
+        const d = c.data;
+        const convex = s.type === 'convex';
+
+        ctx.strokeStyle = 'rgba(255,255,255,0.25)'; ctx.lineWidth = 1.2; line(ctx, 0, cy, SIM_W, cy);
+
+        // العدسة
+        ctx.strokeStyle = '#38bdf8'; ctx.lineWidth = 3; line(ctx, cx, cy - 170, cx, cy + 170);
+        ctx.fillStyle = '#38bdf8';
+        ctx.beginPath(); ctx.moveTo(cx, cy - 170 - (convex ? 10 : -8)); ctx.lineTo(cx - 7, cy - 170); ctx.lineTo(cx + 7, cy - 170); ctx.closePath(); ctx.fill();
+        ctx.beginPath(); ctx.moveTo(cx, cy + 170 + (convex ? 10 : -8)); ctx.lineTo(cx - 7, cy + 170); ctx.lineTo(cx + 7, cy + 170); ctx.closePath(); ctx.fill();
+
+        // البؤرتان
+        const F = Math.abs(d.fs) * k;
+        drawFocus(ctx, cx - F, cy, 'F');
+        drawFocus(ctx, cx + F, cy, "F'");
+        drawFocus(ctx, cx, cy, 'O');
+
+        // الجسم
+        const xo = cx - d.dO * k, yT = cy - d.ho * k;
+        drawArrow(ctx, xo, cy, xo, yT, '#f59e0b', 3);
+        ctx.font = '13px Cairo, sans-serif'; ctx.textAlign = 'center';
+        ctx.fillStyle = '#f59e0b'; ctx.fillText('جسم', xo, cy + 22);
+
+        const T = { x: xo, y: yT }, L = { x: cx, y: yT }, O = { x: cx, y: cy };
+        let path = null;
+        if (d.infinite) {
+            drawArrow(ctx, T.x, T.y, L.x, L.y, '#f59e0b', 2, false);
+            const ex = rayExit(L, { x: 1, y: 0 });
+            ctx.strokeStyle = '#f59e0b'; ctx.lineWidth = 2; line(ctx, L.x, L.y, ex.x, ex.y);
+            path = [T, L, ex];
+            ctx.fillStyle = '#fbbf24'; ctx.textAlign = 'left';
+            ctx.fillText('الأشعة متوازية (الصورة في اللانهاية)', 16, 58);
+        } else {
+            const I = { x: cx + d.di * k, y: cy - d.hi * k };
+            // الشعاع الموازي للمحور
+            const exA = (() => {
+                drawArrow(ctx, T.x, T.y, L.x, L.y, '#f59e0b', 2);
+                return outgoingRay(ctx, L, I, d.virtual, '#f59e0b');
+            })();
+            // الشعاع المار بالمركز البصري
+            drawArrow(ctx, T.x, T.y, O.x, O.y, 'rgba(245,158,11,0.6)', 1.8);
+            const exB = outgoingRay(ctx, O, I, d.virtual, 'rgba(245,158,11,0.6)');
+            // الصورة
+            drawArrow(ctx, I.x, cy, I.x, I.y, '#34d399', 3, d.virtual);
+            ctx.fillStyle = '#34d399'; ctx.textAlign = 'center';
+            ctx.fillText('صورة', I.x, cy + (d.hi > 0 ? 22 : -10));
+            path = [T, L, exA];
+            drawPackets(ctx, [T, L, exA], null, ['#f59e0b', '#f59e0b'], t, 120, 6);
+            drawPackets(ctx, [T, O, exB], null, ['rgba(245,158,11,0.9)', 'rgba(245,158,11,0.9)'], t, 120, 3);
+        }
+        if (d.infinite) drawPackets(ctx, path, null, ['#f59e0b', '#f59e0b'], t, 120, 6);
+        drawHUD(ctx);
+    }
+
+    function drawFocus(ctx, x, y, label) {
+        ctx.fillStyle = '#e5e7eb';
+        ctx.beginPath(); ctx.arc(x, y, 3, 0, Math.PI * 2); ctx.fill();
+        ctx.font = '12px Cairo, sans-serif'; ctx.textAlign = 'center';
+        ctx.fillText(label, x, y - 8);
+    }
+
+    function drawMirror(ctx, t, c, s) {
+        const cx = MIRROR_CX, cy = SIM_H / 2, k = LENS_PX_PER_CM;
+        const d = c.data;
+        const concave = s.type === 'concave';
+        const R = 2 * Math.abs(d.fs) * k;
+        const alpha = Math.min(0.85, Math.asin(Math.min(1, (SIM_H / 2 - 30) / R)));
+
+        ctx.strokeStyle = 'rgba(255,255,255,0.25)'; ctx.lineWidth = 1.2; line(ctx, 0, cy, SIM_W, cy);
+
+        // سطح المرآة
+        ctx.strokeStyle = '#f59e0b'; ctx.lineWidth = 5;
+        ctx.beginPath();
+        if (concave) ctx.arc(cx - R, cy, R, -alpha, alpha);
+        else ctx.arc(cx + R, cy, R, Math.PI - alpha, Math.PI + alpha);
+        ctx.stroke();
+
+        // البؤرة ومركز التقوس
+        const Fx = cx - d.fs * k, Cx = cx - 2 * d.fs * k;
+        drawFocus(ctx, Fx, cy, 'F');
+        drawFocus(ctx, Cx, cy, 'C');
+
+        // الجسم
+        const xo = cx - d.dO * k, yT = cy - d.ho * k;
+        drawArrow(ctx, xo, cy, xo, yT, '#38bdf8', 3);
+        ctx.font = '13px Cairo, sans-serif'; ctx.textAlign = 'center';
+        ctx.fillStyle = '#38bdf8'; ctx.fillText('جسم', xo, cy + 22);
+
+        const T = { x: xo, y: yT }, M = { x: cx, y: yT }, V = { x: cx, y: cy };
+        if (d.infinite) {
+            drawArrow(ctx, T.x, T.y, M.x, M.y, 'rgba(56,189,248,0.9)', 2);
+            const ex = rayExit(M, { x: -1, y: 0 });
+            ctx.strokeStyle = 'rgba(56,189,248,0.9)'; ctx.lineWidth = 2; line(ctx, M.x, M.y, ex.x, ex.y);
+            ctx.fillStyle = '#fbbf24'; ctx.textAlign = 'left';
+            ctx.fillText('الأشعة متوازية (الصورة في اللانهاية)', 16, 58);
+            drawPackets(ctx, [T, M, ex], null, ['#38bdf8', '#38bdf8'], t, 120, 6);
+        } else {
+            const I = { x: cx - d.di * k, y: cy - d.hi * k };
+            drawArrow(ctx, T.x, T.y, M.x, M.y, 'rgba(56,189,248,0.9)', 2);
+            const exA = outgoingRay(ctx, M, I, d.virtual, 'rgba(56,189,248,0.9)');
+            drawArrow(ctx, T.x, T.y, V.x, V.y, 'rgba(56,189,248,0.5)', 1.6);
+            const exB = outgoingRay(ctx, V, I, d.virtual, 'rgba(56,189,248,0.5)');
+            drawArrow(ctx, I.x, cy, I.x, I.y, '#34d399', 3, d.virtual);
+            ctx.fillStyle = '#34d399'; ctx.textAlign = 'center';
+            ctx.fillText('صورة', I.x, cy + (d.hi > 0 ? 22 : -10));
+            drawPackets(ctx, [T, M, exA], null, ['#38bdf8', '#38bdf8'], t, 120, 6);
+            drawPackets(ctx, [T, V, exB], null, ['rgba(56,189,248,0.8)', 'rgba(56,189,248,0.8)'], t, 120, 3);
+        }
+        drawHUD(ctx);
+    }
+
+    function drawIllumination(ctx, t, c) {
+        const cy = SIM_H / 2, x0 = 70, d = c.data;
+        const xs = x0 + d.r * 100;                    // 100 بكسل لكل متر
+        const nx = Math.cos(d.th), ny = Math.sin(d.th);  // العمود على السطح
+        const tx = -Math.sin(d.th), ty = Math.cos(d.th); // مماس السطح
+        const half = 95;
+        const En = Math.min(1, d.E / d.Eref);
+
+        // مخروط الأشعة
+        for (let j = -4; j <= 4; j++) {
+            const u = j / 4;
+            ctx.strokeStyle = `rgba(245,158,11,${(0.08 + 0.22 * En).toFixed(3)})`; ctx.lineWidth = 1.2;
+            line(ctx, x0, cy, xs + tx * half * u, cy + ty * half * u);
         }
 
-        function saveCurrentResult() {
-            const expNames = {1: "انكسار الضوء", 2: "العدسات الرقيقة", 3: "المرايا الكروية", 4: "الاستضاءة", 5: "التداخل والحيود"};
-            let entry = {
-                exp: expNames[currentExpId],
-                inputs: JSON.stringify(expState[currentExpId]),
-                time: new Date().toLocaleTimeString('ar-SA')
-            };
-            notebookData.push(entry);
-            updateNotebookTable();
-            alert("تم حفظ نتائج التجربة بنجاح في دفتر التجارب!");
+        // المصدر
+        const g = ctx.createRadialGradient(x0, cy, 4, x0, cy, 40);
+        g.addColorStop(0, '#fff7d1'); g.addColorStop(0.35, '#f59e0b'); g.addColorStop(1, 'rgba(245,158,11,0)');
+        ctx.fillStyle = g; ctx.beginPath(); ctx.arc(x0, cy, 40, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = '#f59e0b'; ctx.beginPath(); ctx.arc(x0, cy, 14, 0, Math.PI * 2); ctx.fill();
+
+        // السطح المستضيء: سطوعه يتبع الاستضاءة
+        ctx.save();
+        ctx.shadowColor = '#38bdf8'; ctx.shadowBlur = 14 * En;
+        ctx.strokeStyle = `rgba(56,189,248,${(0.35 + 0.65 * En).toFixed(3)})`; ctx.lineWidth = 6;
+        line(ctx, xs + tx * half, cy + ty * half, xs - tx * half, cy - ty * half);
+        ctx.restore();
+
+        // العمود وزاوية السقوط
+        ctx.strokeStyle = 'rgba(255,255,255,0.35)'; ctx.lineWidth = 1.2; ctx.setLineDash([5, 5]);
+        line(ctx, xs, cy, xs + nx * 70, cy + ny * 70); ctx.setLineDash([]);
+        if (d.th > 0) {
+            ctx.strokeStyle = 'rgba(245,158,11,0.8)'; ctx.lineWidth = 1.5;
+            const m = arcBetween(ctx, xs, cy, 42, d.th, Math.PI);
+            ctx.font = '13px Cairo, sans-serif'; ctx.textAlign = 'center'; ctx.fillStyle = '#f59e0b';
+            ctx.fillText(`θ = ${Math.round(deg(d.th))}°`, xs + 62 * Math.cos(m), cy + 62 * Math.sin(m));
         }
 
-        function updateNotebookTable() {
-            const tbody = document.getElementById('notebook-table-body');
-            if(!tbody) return;
-            if (notebookData.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="4" class="p-8 text-center text-gray-500">لا توجد نتائج مسجلة حتى الآن.</td></tr>`;
-                return;
+        // الفوتونات: تتحرك من المصدر نحو السطح ثم تختفي
+        for (let k = 0; k < 6; k++) {
+            const f = (t * 0.45 + k / 6) % 1;
+            const x = x0 + (xs - x0) * f;
+            glowDot(ctx, x, cy + Math.sin(f * 9 + k) * 4 * f, 3, `rgba(255,220,120,${(1 - f * 0.6).toFixed(2)})`);
+        }
+
+        // مسطرة المسافة
+        ctx.strokeStyle = 'rgba(255,255,255,0.4)'; ctx.lineWidth = 1.2;
+        line(ctx, x0, cy + 130, xs, cy + 130);
+        ctx.font = '12px Cairo, sans-serif'; ctx.textAlign = 'center'; ctx.fillStyle = '#e5e7eb';
+        ctx.fillText(`r = ${d.r.toFixed(1)} م`, (x0 + xs) / 2, cy + 148);
+        ctx.font = '14px Cairo, sans-serif'; ctx.fillStyle = '#38bdf8';
+        ctx.fillText(`E = ${d.E.toFixed(1)} lx`, xs, cy - 110);
+        drawHUD(ctx);
+    }
+
+    function drawInterference(ctx, t, c, s) {
+        const cy = SIM_H / 2, bx = 170, sx = 600;
+        const d = c.data;
+        const sep = 22 + (s.d - 0.1) / 1.4 * 120; // المسافة بين الشقين بالبكسل
+        const y1 = cy - sep / 2, y2 = cy + sep / 2;
+        const rgb = wavelengthRGB(s.wavelength);
+        const rgbStr = rgb.join(',');
+
+        // الحاجز والشقان
+        ctx.fillStyle = '#64748b';
+        ctx.fillRect(bx - 4, 40, 8, (y1 - 6) - 40);
+        ctx.fillRect(bx - 4, y1 + 6, 8, (y2 - 6) - (y1 + 6));
+        ctx.fillRect(bx - 4, y2 + 6, 8, (SIM_H - 40) - (y2 + 6));
+
+        // موجات دائرية تنتشر من الشقين نحو اليمين
+        const Rmax = sx - bx - 22;
+        for (const yc of [y1, y2]) {
+            for (let k = 0; k < 6; k++) {
+                const rad = (t * 85 + k * Rmax / 6) % Rmax;
+                const a = (1 - rad / Rmax) * 0.6;
+                ctx.strokeStyle = `rgba(${rgbStr},${a.toFixed(3)})`; ctx.lineWidth = 2;
+                ctx.beginPath(); ctx.arc(bx, yc, rad, -Math.PI / 2, Math.PI / 2); ctx.stroke();
             }
-            tbody.innerHTML = notebookData.map((item) => `
-                <tr class="hover:bg-white/5 transition">
-                    <td class="p-4 font-bold text-amber-400">${item.exp}</td>
-                    <td class="p-4 font-mono text-xs text-gray-300">${item.inputs}</td>
-                    <td class="p-4 text-sky-400">محسوبة ومعتمدة</td>
-                    <td class="p-4 text-gray-400 text-xs">${item.time}</td>
-                </tr>
-            `).join('');
         }
 
-        function clearNotebook() {
-            notebookData = [];
-            updateNotebookTable();
+        // الشاشة: الشدة I = cos²(π·d·y/λL) مُحسَبة لكل صف
+        const half = SIM_H / 2 - 40;
+        const Ys = d.Ys;
+        for (let y = 40; y < SIM_H - 40; y += 2) {
+            const ymm = (cy - y) / half * Ys;
+            const ph = s.d * ymm * 1e3 / (s.wavelength * s.L);
+            const I = Math.cos(Math.PI * ph) ** 2;
+            ctx.fillStyle = `rgb(${Math.round(rgb[0] * I)},${Math.round(rgb[1] * I)},${Math.round(rgb[2] * I)})`;
+            ctx.fillRect(sx - 18, y, 36, 2);
         }
+        ctx.strokeStyle = 'rgba(255,255,255,0.35)'; ctx.lineWidth = 1.2;
+        ctx.strokeRect(sx - 18, 40, 36, SIM_H - 80);
 
-        function exportNotebook() {
-            if (notebookData.length === 0) { alert("دفتر التجارب فارغ!"); return; }
-            let csv = "التجربة,المدخلات,الوقت\n" + notebookData.map(e => `"${e.exp}","${e.inputs}","${e.time}"`).join("\n");
-            let blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-            let url = URL.createObjectURL(blob);
-            let a = document.createElement('a');
-            a.href = url;
-            a.download = 'photon-observatory-notebook.csv';
-            a.click();
+        // تدريج الشاشة بالمليمتر
+        ctx.font = '11px Cairo, sans-serif'; ctx.textAlign = 'left'; ctx.fillStyle = '#9ca3af';
+        for (let k = -3; k <= 3; k++) {
+            const y = cy - (k * d.dy) / Ys * half;
+            if (y < 42 || y > SIM_H - 42) continue;
+            line(ctx, sx + 18, y, sx + 24, y);
+            ctx.fillText(`${(k * d.dy).toFixed(1)} مم`, sx + 28, y + 4);
         }
+        ctx.textAlign = 'center'; ctx.fillStyle = '#e5e7eb';
+        ctx.fillText('الشاشة', sx, 30);
+        ctx.fillStyle = `rgb(${rgb[0]},${rgb[1]},${rgb[2]})`;
+        ctx.fillText(`λ = ${s.wavelength} nm`, bx, 30);
+        ctx.fillStyle = '#9ca3af';
+        ctx.fillText(`L = ${s.L.toFixed(1)} م`, sx, SIM_H - 22);
+        drawHUD(ctx);
+    }
 
-        window.onload = () => {
-            renderExperiment();
+    function drawSimulation(t) {
+        const cv = $('simCanvas');
+        if (!cv || !lastCompute) return;
+        const ctx = prepCanvas(cv, SIM_W, SIM_H);
+        ctx.clearRect(0, 0, SIM_W, SIM_H);
+        const s = expState[currentExpId];
+        switch (currentExpId) {
+            case 1: drawRefraction(ctx, t, lastCompute); break;
+            case 2: drawLens(ctx, t, lastCompute, s); break;
+            case 3: drawMirror(ctx, t, lastCompute, s); break;
+            case 4: drawIllumination(ctx, t, lastCompute); break;
+            case 5: drawInterference(ctx, t, lastCompute, s); break;
+        }
+    }
+
+    // ---------- الرسوم البيانية ----------
+    function drawGraph() {
+        const cv = $('graphCanvas');
+        if (!cv || !lastCompute) return;
+        const ctx = prepCanvas(cv, GR_W, GR_H);
+        ctx.clearRect(0, 0, GR_W, GR_H);
+        const s = expState[currentExpId], d = lastCompute.data;
+        const box = { x0: 66, y0: 18, x1: GR_W - 22, y1: GR_H - 44 };
+        const plot = (xr, yr, xl, yl, xt, yt) => {
+            const mx = x => box.x0 + (x - xr[0]) / (xr[1] - xr[0]) * (box.x1 - box.x0);
+            const my = y => box.y1 - (y - yr[0]) / (yr[1] - yr[0]) * (box.y1 - box.y0);
+            ctx.fillStyle = 'rgba(0,0,0,0.25)'; ctx.fillRect(box.x0, box.y0, box.x1 - box.x0, box.y1 - box.y0);
+            ctx.font = '11px Cairo, sans-serif';
+            for (let i = 0; i <= 4; i++) {
+                const xv = xr[0] + (xr[1] - xr[0]) * i / 4, yv = yr[0] + (yr[1] - yr[0]) * i / 4;
+                ctx.strokeStyle = 'rgba(255,255,255,0.07)'; ctx.lineWidth = 1;
+                line(ctx, mx(xv), box.y0, mx(xv), box.y1);
+                line(ctx, box.x0, my(yv), box.x1, my(yv));
+                ctx.fillStyle = '#9ca3af';
+                ctx.textAlign = 'center'; ctx.fillText(fmtAxis(xv), mx(xv), box.y1 + 14);
+                ctx.textAlign = 'right'; ctx.fillText(fmtAxis(yv), box.x0 - 6, my(yv) + 4);
+            }
+            ctx.strokeStyle = 'rgba(255,255,255,0.3)'; ctx.lineWidth = 1.2;
+            ctx.strokeRect(box.x0, box.y0, box.x1 - box.x0, box.y1 - box.y0);
+            ctx.fillStyle = '#e5e7eb'; ctx.textAlign = 'center';
+            ctx.fillText(xl, (box.x0 + box.x1) / 2, GR_H - 6);
+            ctx.textAlign = 'left'; ctx.fillText(yl, box.x0, box.y0 - 4);
+            return { mx, my };
         };
+        const fmtAxis = v => Math.abs(v) >= 100 ? v.toFixed(0) : (Math.abs(v) >= 10 ? v.toFixed(0) : v.toFixed(1));
+
+        if (currentExpId === 1) {
+            const { mx, my } = plot([0, 1], [0, 1], 'sin θ₁', 'sin θ₂');
+            ctx.strokeStyle = '#38bdf8'; ctx.lineWidth = 2.5; ctx.beginPath();
+            const xEnd = Math.min(1, 1 / d.ratio);
+            ctx.moveTo(mx(0), my(0)); ctx.lineTo(mx(xEnd), my(Math.min(1, d.ratio * xEnd))); ctx.stroke();
+            if (d.ratio > 1) {
+                ctx.strokeStyle = '#ef4444'; ctx.setLineDash([6, 5]);
+                line(ctx, mx(xEnd), my(1), mx(1), my(1)); ctx.setLineDash([]);
+                ctx.fillStyle = '#ef4444'; ctx.textAlign = 'center'; ctx.fillText('منطقة الانعكاس الكلي', (mx(xEnd) + mx(1)) / 2, my(1) - 6);
+            }
+            const sx = Math.sin(d.th1), sy = Math.min(1, d.ratio * sx);
+            ctx.fillStyle = '#f59e0b'; ctx.beginPath(); ctx.arc(mx(sx), my(sy), 5, 0, Math.PI * 2); ctx.fill();
+            $('graph-title').textContent = 'العلاقة بين sin θ₁ و sin θ₂';
+            $('graph-caption').textContent = `ميل الخط = n₁ / n₂ = ${(d.n1 / d.n2).toFixed(2)}. عند ميل أكبر من 1 يحدث انعكاس كلي لأن sin θ₂ لا يتجاوز 1.`;
+        } else if (currentExpId === 2 || currentExpId === 3) {
+            const yr = [-260, 260];
+            const { mx, my } = plot([30, 250], yr, 'dₒ (سم)', 'dᵢ (سم)');
+            const fs = d.fs;
+            ctx.lineWidth = 2.5;
+            let prev = null;
+            for (let dO = 30; dO <= 250; dO += 1) {
+                if (Math.abs(dO - fs) < 0.5) { prev = null; continue; }
+                const di = fs * dO / (dO - fs);
+                if (Math.abs(di) > 260) { prev = null; continue; }
+                if (prev) {
+                    ctx.strokeStyle = di < 0 ? 'rgba(52,211,153,0.6)' : '#34d399';
+                    ctx.setLineDash(di < 0 ? [5, 4] : []);
+                    line(ctx, mx(prev.x), my(prev.y), mx(dO), my(di));
+                }
+                prev = { x: dO, y: di };
+            }
+            ctx.setLineDash([]);
+            if (!d.infinite && Math.abs(d.di) <= 260) {
+                ctx.fillStyle = '#f59e0b'; ctx.beginPath(); ctx.arc(mx(s.do), my(d.di), 5, 0, Math.PI * 2); ctx.fill();
+            }
+            $('graph-title').textContent = currentExpId === 2 ? 'موضع الصورة بدلالة موضع الجسم (العدسة)' : 'موضع الصورة بدلالة موضع الجسم (المرآة)';
+            $('graph-caption').textContent = `الخط المتصل: صورة حقيقية (dᵢ > 0)، والمتقطع: صورة خيالية (dᵢ < 0). النقطة الحالية تعكس dₒ = ${s.do} سم.`;
+        } else if (currentExpId === 4) {
+            const Emax = d.Eref * 1.1;
+            const { mx, my } = plot([0.5, 5], [0, Emax], 'المسافة r (م)', 'E (لوكس)');
+            ctx.strokeStyle = '#38bdf8'; ctx.lineWidth = 2.5; ctx.beginPath();
+            for (let r = 0.5; r <= 5.001; r += 0.05) {
+                const E = d.P * Math.cos(d.th) / (4 * Math.PI * r * r);
+                if (r === 0.5) ctx.moveTo(mx(r), my(E)); else ctx.lineTo(mx(r), my(E));
+            }
+            ctx.stroke();
+            ctx.fillStyle = '#f59e0b'; ctx.beginPath(); ctx.arc(mx(d.r), my(d.E), 5, 0, Math.PI * 2); ctx.fill();
+            $('graph-title').textContent = 'تناقص الاستضاءة مع المسافة (قانون التربيع العكسي)';
+            $('graph-caption').textContent = 'كلما ازدادت المسافة إلى الضعف انخفضت الاستضاءة إلى الربع تقريباً عند السقوط العمودي.';
+        } else if (currentExpId === 5) {
+            const Ys = d.Ys;
+            const { mx, my } = plot([-Ys, Ys], [0, 1], 'الموضع على الشاشة (مم)', 'I / I₀');
+            ctx.strokeStyle = '#38bdf8'; ctx.lineWidth = 2; ctx.beginPath();
+            for (let i = 0; i <= 300; i++) {
+                const y = -Ys + 2 * Ys * i / 300;
+                const I = Math.cos(Math.PI * s.d * y * 1e3 / (s.wavelength * s.L)) ** 2;
+                if (i === 0) ctx.moveTo(mx(y), my(I)); else ctx.lineTo(mx(y), my(I));
+            }
+            ctx.stroke();
+            // قياس الفاصل بين أول هدبين مضيئين
+            ctx.strokeStyle = '#f59e0b'; ctx.lineWidth = 1.5;
+            ctx.setLineDash([4, 4]); line(ctx, mx(0), my(1.05), mx(d.dy), my(1.05)); ctx.setLineDash([]);
+            ctx.fillStyle = '#f59e0b'; ctx.textAlign = 'center'; ctx.fillText(`Δy = ${d.dy.toFixed(2)} مم`, (mx(0) + mx(d.dy)) / 2, my(1.05) - 4);
+            $('graph-title').textContent = 'نمط التداخل على الشاشة';
+            $('graph-caption').textContent = 'الهدب المركزي عند الصفر، والمسافة بين المركزي والمضيء التالي هي الفاصل Δy = λL/d.';
+        }
+    }
+
+    // ---------- عرض النتائج والتحذيرات ----------
+    function renderResults(results) {
+        const box = $('live-results');
+        const colors = ['text-amber-400', 'text-sky-400', 'text-emerald-400', 'text-purple-400', 'text-rose-300'];
+        box.innerHTML = results.map((r, i) => `
+            <div class="glass-panel p-3 rounded-xl border border-gray-800 text-center">
+                <span class="text-xs text-gray-400 block mb-1">${r.label}</span>
+                <span class="font-bold ${colors[i % colors.length]} text-base" dir="ltr">${r.value}</span>
+                ${r.unit ? `<span class="text-[11px] text-gray-500 block">${r.unit}</span>` : ''}
+            </div>`).join('');
+    }
+
+    function renderWarnings(list) {
+        const box = $('warn-box');
+        if (!list.length) { box.innerHTML = ''; return; }
+        const styles = {
+            info: 'bg-sky-500/10 border-sky-500/30 text-sky-200',
+            warn: 'bg-amber-500/10 border-amber-500/40 text-amber-200',
+            error: 'bg-rose-500/10 border-rose-500/40 text-rose-200'
+        };
+        const icons = { info: 'fa-circle-info', warn: 'fa-triangle-exclamation', error: 'fa-circle-xmark' };
+        box.innerHTML = list.map(w => `
+            <div class="p-3 rounded-xl border text-xs leading-relaxed flex gap-2 ${styles[w.level]}">
+                <i class="fa-solid ${icons[w.level]} mt-0.5"></i><span>${w.text}</span>
+            </div>`).join('');
+    }
+
+    function renderControls(e) {
+        const s = expState[e];
+        $('exp-controls').innerHTML = CONTROLS[e].map(c => {
+            if (c.type === 'select') {
+                return `
+                <div>
+                    <label class="text-xs text-gray-400 mb-1 block">${c.label}</label>
+                    <select onchange="setParam('${c.key}', this.value, 'select')" class="w-full bg-[#0b0f19] border border-gray-700 rounded-xl p-2.5 text-sm">
+                        ${c.options.map(([v, l]) => `<option value="${v}" ${s[c.key] === v ? 'selected' : ''}>${l}</option>`).join('')}
+                    </select>
+                </div>`;
+            }
+            return `
+            <div>
+                <label class="text-xs text-gray-400 flex justify-between gap-2 mb-1">
+                    <span>${c.label}</span>
+                    <span id="val-${e}-${c.key}" class="text-amber-400 font-bold whitespace-nowrap" dir="ltr">${displayValue(c, s[c.key])}</span>
+                </label>
+                <input type="range" min="${c.min}" max="${c.max}" step="${c.step}" value="${s[c.key]}"
+                       oninput="setParam('${c.key}', this.value, 'range')" class="w-full">
+            </div>`;
+        }).join('');
+    }
+
+    function displayValue(c, v) {
+        return `${Number(v).toFixed(c.dec)}${c.unit ? ' ' + c.unit : ''}`;
+    }
+
+    // ---------- التحكم في الحالة ----------
+    function setParam(key, val, type) {
+        const e = currentExpId;
+        expState[e][key] = type === 'select' ? val : parseFloat(val);
+        const c = CONTROLS[e].find(x => x.key === key);
+        const span = $(`val-${e}-${key}`);
+        if (span && c && c.type !== 'select') span.textContent = displayValue(c, expState[e][key]);
+        refresh();
+    }
+
+    function refresh() {
+        const e = currentExpId;
+        try {
+            lastCompute = COMPUTE[e](expState[e]);
+            if (!lastCompute.results.every(r => r.value !== 'NaN')) throw new Error('نتيجة غير صالحة');
+            renderResults(lastCompute.results);
+            renderWarnings(lastCompute.warnings);
+            drawGraph();
+            $('canvas-badge').textContent = sim.running ? 'محاكاة حيّة' : 'المحاكاة متوقفة مؤقتاً';
+        } catch (err) {
+            renderWarnings([{ level: 'error', text: 'تعذر حساب النتائج: ' + err.message }]);
+            $('canvas-badge').textContent = 'خطأ في الحساب';
+        }
+    }
+
+    function switchTab(tabId) {
+        if (recorder && recorder.state !== 'inactive' && tabId !== 'lab') recorder.stop();
+        currentTab = tabId;
+        ['home', 'lab', 'laws', 'notebook', 'references'].forEach(t => {
+            $(`tab-${t}`).classList.add('hidden');
+            const navBtn = $(`nav-${t}`);
+            if (navBtn) navBtn.className = "px-4 py-2 rounded-xl transition-all text-gray-300 hover:text-white hover:bg-white/5";
+        });
+        $(`tab-${tabId}`).classList.remove('hidden');
+        const activeNav = $(`nav-${tabId}`);
+        if (activeNav) activeNav.className = "px-4 py-2 rounded-xl transition-all text-amber-400 bg-amber-500/10";
+
+        if (tabId === 'lab') { sim.running = true; updatePlayBtn(); switchExp(currentExpId); }
+        else if (tabId === 'laws') renderLaws();
+        else if (tabId === 'notebook') renderNotebook();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function toggleMobileMenu() { $('mobile-menu').classList.toggle('hidden'); }
+
+    function switchExp(id) {
+        currentExpId = id;
+        for (let i = 1; i <= 5; i++) {
+            const btn = $(`btn-exp-${i}`);
+            btn.className = i === id
+                ? "px-4 py-2 rounded-xl text-sm font-bold transition bg-amber-500 text-black shadow"
+                : "px-4 py-2 rounded-xl text-sm font-bold transition bg-gray-800 text-gray-300 hover:bg-gray-700";
+        }
+        const info = EXP_INFO[id];
+        $('exp-title').innerHTML = `<i class="fa-solid fa-sliders"></i> ${info.title}`;
+        $('exp-formula').textContent = info.formula;
+        $('exp-explanation').textContent = info.explain;
+        $('learning-steps').innerHTML = info.steps.map(s => `<div class="p-3 rounded-xl bg-black/30 border border-gray-800">${s}</div>`).join('');
+        renderControls(id);
+        refresh();
+    }
+
+    function resetCurrentExp() {
+        expState[currentExpId] = clone(DEFAULTS[currentExpId]);
+        renderControls(currentExpId);
+        refresh();
+        toast('أُعيدت المدخلات إلى القيم الافتراضية');
+    }
+
+    // ---------- التشغيل ----------
+    function togglePlay() {
+        sim.running = !sim.running;
+        updatePlayBtn();
+        refresh();
+    }
+
+    function updatePlayBtn() {
+        const b = $('play-btn');
+        if (!b) return;
+        b.innerHTML = sim.running
+            ? '<i class="fa-solid fa-pause"></i> <span>إيقاف</span>'
+            : '<i class="fa-solid fa-play"></i> <span>تشغيل</span>';
+    }
+
+    function restartMotion() {
+        sim.t = 0; sim.running = true; updatePlayBtn(); refresh();
+    }
+
+    function setSpeed(v) { sim.speed = parseFloat(v); }
+
+    // ---------- تسجيل الفيديو ----------
+    function setRecUI(on) {
+        const b = $('rec-btn');
+        b.innerHTML = on
+            ? '<i class="fa-solid fa-stop"></i> <span>إيقاف التسجيل</span>'
+            : '<i class="fa-solid fa-circle-dot"></i> <span>تسجيل فيديو</span>';
+        b.classList.toggle('bg-rose-500/20', on);
+        $('rec-status').textContent = on ? 'جارٍ التسجيل… (يلتقط الحركة كما تظهر على اللوحة)' : '';
+    }
+
+    function toggleRecord() {
+        if (recorder && recorder.state !== 'inactive') { recorder.stop(); return; }
+        const cv = $('simCanvas');
+        if (typeof MediaRecorder === 'undefined' || !cv.captureStream) {
+            toast('هذا المتصفح لا يدعم تسجيل الفيديو من اللوحة. جرّبي متصفح Chrome أو Edge.', 'error');
+            return;
+        }
+        const types = ['video/webm;codecs=vp9', 'video/webm;codecs=vp8', 'video/webm', 'video/mp4'];
+        const mime = types.find(t => MediaRecorder.isTypeSupported(t));
+        if (!mime) { toast('لا يوجد تنسيق فيديو مدعوم في هذا المتصفح.', 'error'); return; }
+
+        sim.running = true; updatePlayBtn();
+        recChunks = [];
+        try {
+            recorder = new MediaRecorder(cv.captureStream(30), { mimeType: mime });
+        } catch (err) {
+            toast('تعذر بدء التسجيل: ' + err.message, 'error'); return;
+        }
+        recorder.ondataavailable = e => { if (e.data && e.data.size) recChunks.push(e.data); };
+        recorder.onstop = () => {
+            clearTimeout(recTimer);
+            const ext = mime.startsWith('video/mp4') ? 'mp4' : 'webm';
+            const blob = new Blob(recChunks, { type: mime.split(';')[0] });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `photon-${EXP_KEYS[currentExpId]}-${Date.now()}.${ext}`;
+            document.body.appendChild(a); a.click(); a.remove();
+            setTimeout(() => URL.revokeObjectURL(url), 5000);
+            setRecUI(false);
+            toast('تم تنزيل ملف الفيديو');
+        };
+        recorder.start(250);
+        setRecUI(true);
+        recTimer = setTimeout(() => { if (recorder && recorder.state !== 'inactive') recorder.stop(); }, 60000);
+    }
+
+    // ---------- المختبر: حلقة الرسم ----------
+    let lastW = 0;
+    function frame(ts) {
+        if (!sim.last) sim.last = ts;
+        const dt = Math.min(0.05, (ts - sim.last) / 1000);
+        sim.last = ts;
+        if (currentTab === 'lab') {
+            if (sim.running) sim.t += dt * sim.speed;
+            try {
+                drawSimulation(sim.t);
+                drawGraph();
+            } catch (err) {
+                $('canvas-badge').textContent = 'خطأ في الرسم: ' + err.message;
+            }
+        }
+        requestAnimationFrame(frame);
+    }
+
+    // ---------- القوانين ----------
+    const lawsData = [
+        { name: "قانون سنل في الانكسار", formula: "n₁ sin(θ₁) = n₂ sin(θ₂)", desc: "يربط زوايا السقوط والانكسار لمعاملات انكسار الوسطين. الزاوية الحرجة: sin θc = n₂ / n₁ عندما n₁ > n₂.", units: "بدون وحدة (زوايا ومعاملات انكسار)" },
+        { name: "معادلة العدسات والمرايا الرقيقة", formula: "1/f = 1/dₒ + 1/dᵢ", desc: "تحدد العلاقة الرياضية بين البعد البؤري وبعد الجسم وبعد الصورة. في المرايا المقعرة f موجب، وفي المحدبة f سالب.", units: "سم أو متر (cm / m)" },
+        { name: "علاقة التكبير", formula: "m = hᵢ/hₒ = −dᵢ/dₒ", desc: "تحسب نسبة طول الصورة إلى طول الجسم وتحدد خصائصها: m < 0 صورة مقلوبة، m > 0 صورة معتدلة.", units: "بدون وحدة" },
+        { name: "قانون الاستضاءة (التربيع العكسي)", formula: "E = I cos θ / r² = P cos θ / (4π r²)", desc: "يحسب شدة الاستضاءة السطحية الناتجة عن مصدر ضوئي نقطي. يُضرب في cos θ عند السقوط المائل.", units: "لوكس (lx) — لومن/م²" },
+        { name: "تجربة الشق المزدوج ليونغ", formula: "Δy = λ · L / d", desc: "لحساب الفاصل بين الأهداب المضيئة باستخدام تداخل الموجات الضوئية، وشدة الشاشة I = I₀ cos²(π d y / λ L).", units: "نانومتر (nm) أو متر" }
+    ];
+
+    function renderLaws() {
+        $('laws-container').innerHTML = lawsData.map(law => `
+            <div class="glass-panel p-6 rounded-2xl border border-gray-800 space-y-3">
+                <h3 class="font-bold text-lg text-amber-400">${law.name}</h3>
+                <div class="p-3 rounded-xl bg-black/40 border border-gray-800 font-mono text-sky-300 text-center text-lg" dir="ltr">${law.formula}</div>
+                <p class="text-gray-300 text-sm">${law.desc}</p>
+                <p class="text-xs text-gray-400"><strong>وحدات القياس:</strong> ${law.units}</p>
+            </div>
+        `).join('');
+    }
+
+    // ---------- دفتر التجارب ----------
+    const STORAGE_KEY = 'photon-observatory-notebook-v2';
+
+    function loadNotebook() {
+        try {
+            const raw = localStorage.getItem(STORAGE_KEY);
+            notebook = raw ? JSON.parse(raw) : [];
+            if (!Array.isArray(notebook)) notebook = [];
+        } catch (err) {
+            notebook = [];
+        }
+    }
+
+    function persistNotebook() {
+        try { localStorage.setItem(STORAGE_KEY, JSON.stringify(notebook)); }
+        catch (err) { toast('تعذر حفظ الدفتر في هذا المتصفح، سيبقى السجل لهذه الجلسة فقط.', 'error'); }
+    }
+
+    function snapshotCurrent() {
+        const e = currentExpId, s = expState[e], c = lastCompute;
+        const inputs = CONTROLS[e].map(ctrl => ({
+            label: ctrl.label.replace(/\s*\[.*?\]/, ''),
+            value: ctrl.type === 'select'
+                ? (ctrl.options.find(([v]) => v === s[ctrl.key]) || [null, s[ctrl.key]])[1]
+                : Number(s[ctrl.key]).toFixed(ctrl.dec),
+            unit: ctrl.type === 'select' ? '' : ctrl.unit
+        }));
+        const results = c.results.map(r => ({ label: r.label, value: String(r.value), unit: r.unit }));
+        return {
+            id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+            exp: EXP_NAMES[e],
+            inputs, results,
+            iso: new Date().toISOString()
+        };
+    }
+
+    function saveCurrentResult() {
+        if (!lastCompute) return;
+        notebook.unshift(snapshotCurrent());
+        persistNotebook();
+        renderNotebook();
+        toast('تم حفظ نتائج التجربة في دفتر التجارب');
+    }
+
+    function fmtTime(iso) {
+        const d = new Date(iso);
+        try { return d.toLocaleString('ar-SA', { dateStyle: 'short', timeStyle: 'short' }); }
+        catch (err) { return d.toLocaleString(); }
+    }
+
+    function renderNotebook() {
+        const tbody = $('notebook-table-body');
+        $('notebook-count').textContent = notebook.length
+            ? `عدد السجلات: ${notebook.length}`
+            : 'لا توجد سجلات بعد';
+        if (!notebook.length) {
+            tbody.innerHTML = `<tr><td colspan="5" class="p-8 text-center text-gray-500">لا توجد نتائج مسجلة حتى الآن. أجري التجارب واضغطي على "حفظ في الدفتر".</td></tr>`;
+            return;
+        }
+        tbody.innerHTML = notebook.map(item => `
+            <tr class="hover:bg-white/5 transition align-top">
+                <td class="p-4 font-bold text-amber-400">${item.exp}</td>
+                <td class="p-4 text-xs text-gray-300 leading-relaxed">${item.inputs.map(i => `${i.label}: <span dir="ltr">${i.value} ${i.unit}</span>`).join('<br>')}</td>
+                <td class="p-4 text-xs text-sky-300 leading-relaxed">${item.results.map(r => `${r.label}: <span dir="ltr">${r.value} ${r.unit}</span>`).join('<br>')}</td>
+                <td class="p-4 text-gray-400 text-xs whitespace-nowrap">${fmtTime(item.iso)}</td>
+                <td class="p-4">
+                    <button onclick="deleteEntry('${item.id}')" class="px-3 py-1.5 rounded-lg bg-rose-500/15 text-rose-300 border border-rose-500/30 hover:bg-rose-500/25 text-xs font-bold transition flex items-center gap-1">
+                        <i class="fa-solid fa-trash-can"></i> حذف
+                    </button>
+                </td>
+            </tr>`).join('');
+    }
+
+    function deleteEntry(id) {
+        if (!confirm('هل تريدين حذف هذا السجل من الدفتر؟')) return;
+        notebook = notebook.filter(x => x.id !== id);
+        persistNotebook();
+        renderNotebook();
+        toast('تم حذف السجل');
+    }
+
+    function clearNotebook() {
+        if (!notebook.length) { toast('الدفتر فارغ بالفعل'); return; }
+        if (!confirm('سيتم حذف جميع سجلات الدفتر. هل أنتِ متأكدة؟')) return;
+        notebook = [];
+        persistNotebook();
+        renderNotebook();
+        toast('تم تفريغ الدفتر');
+    }
+
+    function exportNotebook() {
+        if (!notebook.length) { toast('دفتر التجارب فارغ!', 'error'); return; }
+        const q = v => `"${String(v).replace(/"/g, '""')}"`;
+        const header = ['التجربة', 'المدخلات', 'النتائج المحسوبة', 'التوقيت (ISO)'].map(q).join(',');
+        const rows = notebook.map(e => [
+            e.exp,
+            e.inputs.map(i => `${i.label}=${i.value} ${i.unit}`.trim()).join(' | '),
+            e.results.map(r => `${r.label}=${r.value} ${r.unit}`.trim()).join(' | '),
+            e.iso
+        ].map(q).join(','));
+        const csv = '﻿' + header + '\n' + rows.join('\n'); // BOM لتظهر العربية بشكل صحيح في Excel
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'photon-observatory-notebook.csv';
+        document.body.appendChild(a); a.click(); a.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 5000);
+    }
+
+    // ---------- بدء التشغيل ----------
+    window.addEventListener('error', e => toast('حدث خطأ في الصفحة: ' + (e.message || 'غير معروف'), 'error'));
+
+    loadNotebook();
+    renderNotebook();
+    switchExp(1);
+    requestAnimationFrame(frame);
     </script>
 </body>
 </html>
