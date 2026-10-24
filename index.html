@@ -162,7 +162,7 @@
 
             <!-- Experiment Workspace Grid -->
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                <!-- Controls & Steps Column -->
+                <!-- Controls & Steps Column (Left/Right depending on RTL) -->
                 <div class="lg:col-span-1 space-y-6">
                     <div class="glass-panel p-6 rounded-2xl border border-gray-800 space-y-6">
                         <h3 id="exp-title" class="text-lg font-bold border-b border-gray-800 pb-3 flex items-center gap-2 text-amber-400">
@@ -333,11 +333,11 @@
 
         // Experiment Inputs State
         let expState = {
-            1: { n1: 1.0, n2: 1.5, angle: 45 }, 
-            2: { type: 'convex', f: 50, do: 120, ho: 40 }, 
-            3: { type: 'concave', f: 40, do: 90 }, 
-            4: { power: 2000, distance: 2.0 }, 
-            5: { wavelength: 550, d: 0.5, L: 2.0 } 
+            1: { n1: 1.0, n2: 1.5, angle: 45 }, // Refraction
+            2: { type: 'convex', f: 50, do: 120, ho: 40 }, // Lenses
+            3: { type: 'concave', f: 40, do: 90 }, // Mirrors
+            4: { power: 2000, distance: 2.0 }, // Illumination
+            5: { wavelength: 550, d: 0.5, L: 2.0 } // Interference
         };
 
         function switchTab(tabId) {
@@ -390,6 +390,7 @@
             renderExperiment();
         }
 
+        // Render Experiment Controls, Steps & Canvas
         function renderExperiment() {
             const controlsDiv = document.getElementById('exp-controls');
             const stepsDiv = document.getElementById('learning-steps');
@@ -425,10 +426,10 @@
                 `;
             } else if (currentExpId === 2) {
                 titleDiv.innerHTML = `<i class="fa-solid fa-sliders"></i> لوحة التحكم - العدسات الرقيقة`;
-                explDiv.innerHTML = `تستخدم معادلة العدسات الرقيقة لتحديد موضع الصورة الناتجة: $\\frac{1}{f} = \\frac{1}{d_o} + \\frac{1}{d_i}$، ويحسب التكبير عبر العلاقة: $m = \\frac{h_i}{h_o} = -\\frac{d_i}{d_o}$.`;
+                explDiv.innerHTML = `تستخدم معادلة العدسات الرقيقة لتحديد موضع الصورة الناتجة: $\\frac{1}{f} = \\frac{1}{d_o} + \\frac{1}{d_i}$، ويحسب التكالبر عبر العلاقة: $m = \\frac{h_i}{h_o} = -\\frac{d_i}{d_o}$.`;
                 
                 stepsDiv.innerHTML = `
-                    <div class="p-3 rounded-xl bg-black/30 border border-gray-800"><span class="text-amber-400 font-bold">1. قبل التجربة:</span> ماذا تتوقعي لصفات الصورة عندما يكون الجسم على بعد أكبر من ضعف البعد البؤري ($2f$)؟</div>
+                    <div class="p-3 rounded-xl bg-black/30 border border-gray-800"><span class="text-amber-400 font-bold">1. قبل التجربة:</span> ماذا تتوقعين لصفات الصورة عندما يكون الجسم على بعد أكبر من ضعف البعد البؤري ($2f$)؟</div>
                     <div class="p-3 rounded-xl bg-black/30 border border-gray-800"><span class="text-sky-400 font-bold">2. نفّذي التجربة:</span> عدلي بعد الجسم ($d_o$) أو البعد البؤري ($f$) ولاحظي تكوين الصورة.</div>
                 `;
 
@@ -477,7 +478,7 @@
                 `;
             } else if (currentExpId === 4) {
                 titleDiv.innerHTML = `<i class="fa-solid fa-sliders"></i> لوحة التحكم - الاستضاءة`;
-                explDiv.innerHTML = `ينص قانون التربيع العكسي في الاستضاءة على أن الاستضاءة ($E$) تتناسب عكسياً مع مربع البعد عن المصدر الضوئي: $E = \\frac{P}{4\\pi r^2}$.`;
+                explDiv.innerHTML = `تنص قانون التربيع العكسي في الاستضاءة على أن الاستضاءة ($E$) تتناسب عكسياً مع مربع البعد عن المصدر الضوئي: $E = \\frac{P}{4\\pi r^2}$.`;
                 
                 stepsDiv.innerHTML = `
                     <div class="p-3 rounded-xl bg-black/30 border border-gray-800"><span class="text-amber-400 font-bold">1. قبل التجربة:</span> ماذا تتوقع أن يحدث لشدة الاستضاءة إذا ضاعفنا المسافة بين السطح والمصدر الضوئي؟</div>
@@ -518,12 +519,14 @@
             drawSimulation();
         }
 
+        // Input Updaters
         function updateExp1(param, val) { expState[1][param] = parseFloat(val); if(param!=='angle')document.getElementById(`val-${param}`).innerText = val; document.getElementById('val-angle').innerText = expState[1].angle + '°'; drawSimulation(); }
         function updateExp2(param, val) { expState[2][param] = param==='type'?val:parseFloat(val); drawSimulation(); }
         function updateExp3(param, val) { expState[3][param] = param==='type'?val:parseFloat(val); drawSimulation(); }
         function updateExp4(param, val) { expState[4][param] = parseFloat(val); drawSimulation(); }
         function updateExp5(param, val) { expState[5][param] = parseFloat(val); drawSimulation(); }
 
+        // Core Simulation Canvas Drawing & Calculations
         function drawSimulation() {
             const canvas = document.getElementById('simCanvas');
             const ctx = canvas.getContext('2d');
@@ -536,6 +539,7 @@
             const cy = h / 2;
 
             if (currentExpId === 1) {
+                // Refraction Simulation
                 const n1 = expState[1].n1;
                 const n2 = expState[1].n2;
                 const theta1Deg = expState[1].angle;
@@ -545,11 +549,13 @@
                 let isTIR = sinTheta2 > 1.0;
                 let theta2Deg = isTIR ? 'انعكاس كلي' : ((Math.asin(sinTheta2) * 180) / Math.PI).toFixed(1) + '°';
 
+                // Draw Medium Divider
                 ctx.fillStyle = '#0f172a';
                 ctx.fillRect(0, cy, w, cy);
                 ctx.fillStyle = 'rgba(56, 189, 248, 0.05)';
                 ctx.fillRect(0, 0, w, cy);
 
+                // Normal Line
                 ctx.strokeStyle = 'rgba(255,255,255,0.2)';
                 ctx.setLineDash([4, 4]);
                 ctx.beginPath();
@@ -558,6 +564,7 @@
                 ctx.stroke();
                 ctx.setLineDash([]);
 
+                // Incident Ray
                 const rayLen = 160;
                 const startX = cx - rayLen * Math.sin(theta1Rad);
                 const startY = cy - rayLen * Math.cos(theta1Rad);
@@ -569,6 +576,7 @@
                 ctx.lineTo(cx, cy);
                 ctx.stroke();
 
+                // Reflected / Refracted Ray
                 if (isTIR) {
                     ctx.strokeStyle = '#ef4444';
                     const refX = cx + rayLen * Math.sin(theta1Rad);
@@ -594,12 +602,14 @@
                     <div class="glass-panel p-3 rounded-xl border border-gray-800 text-center"><span class="text-xs text-gray-400 block">زاوية الانكسار ($\\theta_2$)</span><span class="font-bold text-emerald-400">${theta2Deg}</span></div>
                 `;
             } else if (currentExpId === 2) {
+                // Lenses Simulation
                 const f = expState[2].f;
                 const do_val = expState[2].do;
-                let di = do_val === f ? 0 : (f * do_val) / (do_val - f);
-                let m = do_val === f ? 0 : -di / do_val;
+                let di = (f * do_val) / (do_val - f);
+                let m = -di / do_val;
                 let imgType = do_val === f ? 'عند اللانهاية' : (di > 0 ? 'حقيقية ومقلوبة' : 'خيالية ومعتدلة');
 
+                // Draw Optical Axis
                 ctx.strokeStyle = 'rgba(255,255,255,0.2)';
                 ctx.lineWidth = 1.5;
                 ctx.beginPath();
@@ -607,12 +617,14 @@
                 ctx.lineTo(w - 20, cy);
                 ctx.stroke();
 
+                // Draw Lens
                 ctx.strokeStyle = '#38bdf8';
                 ctx.lineWidth = 4;
                 ctx.beginPath();
                 ctx.arc(cx, cy - 40, 80, Math.PI/3, 2*Math.PI/3);
                 ctx.stroke();
 
+                // Draw Object
                 const objX = cx - (do_val * 0.8);
                 ctx.fillStyle = '#f59e0b';
                 ctx.fillRect(objX - 4, cy - 60, 8, 60);
@@ -623,10 +635,11 @@
                     <div class="glass-panel p-3 rounded-xl border border-gray-800 text-center"><span class="text-xs text-gray-400 block">صفات الصورة</span><span class="font-bold text-emerald-400">${imgType}</span></div>
                 `;
             } else if (currentExpId === 3) {
+                // Mirrors Simulation
                 const f = expState[3].f;
                 const do_val = expState[3].do;
-                let di = do_val === f ? 0 : (f * do_val) / (do_val - f);
-                let m = do_val === f ? 0 : -di / do_val;
+                let di = (f * do_val) / (do_val - f);
+                let m = -di / do_val;
                 let mirrorType = expState[3].type === 'concave' ? 'مقعرة' : 'محدبة';
 
                 ctx.strokeStyle = 'rgba(255,255,255,0.2)';
@@ -636,6 +649,7 @@
                 ctx.lineTo(w - 20, cy);
                 ctx.stroke();
 
+                // Draw Mirror Curve
                 ctx.strokeStyle = '#f59e0b';
                 ctx.lineWidth = 4;
                 ctx.beginPath();
@@ -648,10 +662,12 @@
                     <div class="glass-panel p-3 rounded-xl border border-gray-800 text-center"><span class="text-xs text-gray-400 block">التكبير ($m$)</span><span class="font-bold text-emerald-400">${m.toFixed(2)}</span></div>
                 `;
             } else if (currentExpId === 4) {
+                // Illumination Simulation
                 const P = expState[4].power;
                 const r = expState[4].distance;
                 const E = P / (4 * Math.PI * r * r);
 
+                // Draw Light Source Visual
                 ctx.fillStyle = '#f59e0b';
                 ctx.beginPath();
                 ctx.arc(cx, cy, 35, 0, 2 * Math.PI);
@@ -663,11 +679,13 @@
                     <div class="glass-panel p-3 rounded-xl border border-gray-800 text-center"><span class="text-xs text-gray-400 block">شدة الاستضاءة ($E$)</span><span class="font-bold text-emerald-400">${E.toFixed(1)} لوكس (lx)</span></div>
                 `;
             } else if (currentExpId === 5) {
+                // Interference Simulation
                 const lam = expState[5].wavelength;
                 const d = expState[5].d;
                 const L = expState[5].L;
-                const fringeDist = (lam * 1e-9 * L * 1000) / (d * 1e-3);
+                const fringeDist = (lam * 1e-9 * L * 1000) / (d * 1e-3); // mm approx
 
+                // Draw Interference Pattern Bands
                 for (let i = -5; i <= 5; i++) {
                     let alpha = Math.max(0.1, 1 - Math.abs(i) * 0.15);
                     ctx.fillStyle = `rgba(56, 189, 248, ${alpha})`;
@@ -682,8 +700,9 @@
             }
         }
 
+        // Laws Library Data & Render
         const lawsData = [
-            { name: "قانون سنل في الانكسار", formula: "n₁ sin(θ₁) = n₂ sin(θ₂)", desc: "يربط زوايا السقوط والانكسار لمعاملات انكسار الوسطين.", units: "بدون وحدة (زوايا ومعاملات انكسار)" },
+            { name: "قانون سنل في الانكسار", formula: "n₁ sin(θ₁) = n₂ sin(θ₂)", desc: "ي ربط زوايا السقوط والانكسار لمعاملات انكسار الوسطين.", units: "بدون وحدة (زوايا ومعاملات انكسار)" },
             { name: "معادلة العدسات والمرايا الرقيقة", formula: "1/f = 1/dₒ + 1/dᵢ", desc: "تحدد العلاقة الرياضية بين البعد البؤري وبعد الجسم وبعد الصورة.", units: "سم أو متر (cm / m)" },
             { name: "علاقة التكبير", formula: "m = hᵢ/hₒ = −dᵢ/dₒ", desc: "تحسب نسبة طول الصورة إلى طول الجسم وتحدد خصائصها.", units: "بدون وحدة" },
             { name: "قانون الاستضاءة (التربيع العكسي)", formula: "E = P / (4πr²)", desc: "يحسب شدة الاستضاءة السطحية الناتجة عن مصدر ضوئي نقطي.", units: "لوكس (lx)" },
@@ -702,6 +721,7 @@
             `).join('');
         }
 
+        // Notebook Saving & Exporting
         function saveCurrentResult() {
             const expNames = {1: "انكسار الضوء", 2: "العدسات الرقيقة", 3: "المرايا الكروية", 4: "الاستضاءة", 5: "التداخل والحيود"};
             let entry = {
@@ -746,6 +766,7 @@
             a.click();
         }
 
+        // Initialize on load
         window.onload = () => {
             renderExperiment();
         };
