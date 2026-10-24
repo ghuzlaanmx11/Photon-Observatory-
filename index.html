@@ -3,157 +3,724 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>تنبيه: الموقع تحت الصيانة</title>
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- FontAwesome for Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Google Fonts (Cairo) -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <title>مرصد الفوتون | Photon Observatory</title>
+    <!-- خط Tajawal للخطوط العربية الأنيقة -->
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+    <!-- MathJax لدعم طباعة المعادلات الفيزيائية بالرياضيات -->
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     
     <style>
+        :root {
+            --bg-primary: #060913;
+            --bg-secondary: #0f172a;
+            --bg-card: #1e293b;
+            --accent-gold: #f59e0b;
+            --accent-blue: #38bdf8;
+            --accent-violet: #818cf8;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --border-color: rgba(255, 255, 255, 0.1);
+            --sidebar-width: 280px;
+        }
+
         * {
-            font-family: 'Cairo', sans-serif;
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Tajawal', sans-serif;
+            -webkit-tap-highlight-color: transparent;
         }
 
-        /* Construction Tape Gradient */
-        .caution-tape {
-            background: repeating-linear-gradient(
-                -45deg,
-                #facc15,
-                #facc15 20px,
-                #18181b 20px,
-                #18181b 40px
-            );
-        }
-
-        /* Marquee Animation */
-        @keyframes marquee {
-            0% { transform: translateX(0%); }
-            100% { transform: translateX(50%); }
-        }
-
-        .animate-marquee {
+        body {
+            background-color: var(--bg-primary);
+            color: var(--text-main);
+            min-height: 100vh;
             display: flex;
-            width: 200%;
-            animation: marquee 16s linear infinite;
+            flex-direction: column;
+            overflow-x: hidden;
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(56, 189, 248, 0.05) 0%, transparent 40%),
+                radial-gradient(circle at 90% 80%, rgba(129, 140, 248, 0.05) 0%, transparent 40%);
         }
 
-        /* Pulse for Status Indicator */
-        @keyframes pulse-ring {
-            0% { transform: scale(0.95); opacity: 0.8; }
-            50% { transform: scale(1.3); opacity: 0.2; }
-            100% { transform: scale(0.95); opacity: 0.8; }
+        /* ----- الشريط العلوي (Header) ----- */
+        header {
+            background: rgba(15, 23, 42, 0.85);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border-color);
+            padding: 12px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
         }
 
-        .pulse-ring-effect {
-            animation: pulse-ring 2s infinite ease-in-out;
+        .header-brand {
+            display: flex;
+            align-items: center;
+            gap: 16px;
         }
 
-        /* Glassmorphism Styling */
-        .glass-card {
-            background: rgba(24, 24, 27, 0.8);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+        .menu-toggle {
+            background: transparent;
+            border: none;
+            color: var(--text-main);
+            font-size: 24px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 4px;
+            border-radius: 6px;
+            transition: background 0.2s;
+        }
+
+        .menu-toggle:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .brand-logo-container {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo-icon {
+            width: 42px;
+            height: 42px;
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.2), rgba(56, 189, 248, 0.2));
+            border: 2px solid rgba(245, 158, 11, 0.5);
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 0 15px rgba(245, 158, 11, 0.2);
+            font-size: 20px;
+        }
+
+        .brand-text h1 {
+            font-size: 20px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            line-height: 1.1;
+        }
+
+        .brand-text h1 span.yellow { color: var(--accent-gold); }
+        .brand-text h1 span.blue { color: var(--accent-blue); }
+
+        .brand-text p {
+            font-size: 10px;
+            color: var(--text-muted);
+            letter-spacing: 1.5px;
+            font-weight: 600;
+            margin-top: 2px;
+        }
+
+        /* ----- القائمة الجانبية (Sidebar) ----- */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            right: -280px;
+            width: var(--sidebar-width);
+            height: 100%;
+            background: rgba(15, 23, 42, 0.95);
+            backdrop-filter: blur(20px);
+            border-left: 1px solid var(--border-color);
+            z-index: 200;
+            transition: right 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            flex-direction: column;
+            padding: 24px 16px;
+            box-shadow: -10px 0 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .sidebar.active {
+            right: 0;
+        }
+
+        .sidebar-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(4px);
+            z-index: 150;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+        }
+
+        .sidebar-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .sidebar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 32px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .close-sidebar {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 20px;
+            cursor: pointer;
+        }
+
+        .nav-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .nav-item button {
+            width: 100%;
+            padding: 12px 16px;
+            background: transparent;
+            border: 1px solid transparent;
+            border-radius: 10px;
+            color: var(--text-muted);
+            font-size: 15px;
+            font-weight: 600;
+            text-align: right;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .nav-item button:hover {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-main);
+        }
+
+        .nav-item button.active {
+            background: rgba(245, 158, 11, 0.12);
+            border-color: rgba(245, 158, 11, 0.3);
+            color: var(--accent-gold);
+        }
+
+        .sidebar-footer {
+            margin-top: auto;
+            padding-top: 16px;
+            border-top: 1px solid var(--border-color);
+            font-size: 12px;
+            color: var(--text-muted);
+            text-align: center;
+        }
+
+        /* ----- محتوى الصفحات الأصلي ----- */
+        main {
+            flex: 1;
+            max-width: 1300px;
+            width: 100%;
+            margin: 0 auto;
+            padding: 24px 16px;
+        }
+
+        .page-section {
+            display: none;
+        }
+
+        .page-section.active {
+            display: block;
+            animation: fadeIn 0.4s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* تصميم الكروت والأزرار العامة */
+        .card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+        }
+
+        @media (min-width: 900px) {
+            .grid-2 {
+                grid-template-columns: 2fr 1fr;
+            }
+        }
+
+        .lab-selector {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            overflow-x: auto;
+            padding-bottom: 5px;
+        }
+
+        .lab-btn {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            color: var(--text-muted);
+            padding: 10px 18px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            white-space: nowrap;
+            transition: all 0.2s;
+        }
+
+        .lab-btn.active {
+            background: var(--accent-blue);
+            color: #000;
+            border-color: var(--accent-blue);
+        }
+
+        canvas {
+            width: 100%;
+            height: 380px;
+            background: #02040a;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            display: block;
+        }
+
+        .controls-group {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            margin-top: 16px;
+        }
+
+        .control-item {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .control-item label {
+            font-size: 13px;
+            color: var(--text-muted);
+            display: flex;
+            justify-content: space-between;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            accent-color: var(--accent-blue);
+        }
+
+        select {
+            background: var(--bg-card);
+            color: var(--text-main);
+            border: 1px solid var(--border-color);
+            padding: 8px 12px;
+            border-radius: 8px;
+            outline: none;
+        }
+
+        /* قسم دفتر التجارب */
+        textarea {
+            width: 100%;
+            height: 200px;
+            background: #02040a;
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 12px;
+            color: var(--text-main);
+            resize: vertical;
+            font-size: 14px;
+            margin-top: 10px;
+        }
+
+        .btn-primary {
+            background: var(--accent-gold);
+            color: #000;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        /* التذييل الرئيسي (Footer) */
+        footer {
+            background: rgba(15, 23, 42, 0.9);
+            border-top: 1px solid var(--border-color);
+            padding: 20px;
+            text-align: center;
+            margin-top: auto;
+            color: var(--text-muted);
+            font-size: 14px;
+        }
+
+        footer strong {
+            color: var(--accent-gold);
         }
     </style>
 </head>
-<body class="bg-zinc-950 text-zinc-100 min-h-screen flex flex-col justify-between overflow-x-hidden select-none">
+<body>
 
-    <!-- Top Animated Caution Banner Header -->
-    <header class="w-full relative z-20 shadow-2xl border-b border-amber-500/30 overflow-hidden">
-        <!-- Caution Tape Border Accent -->
-        <div class="h-3 w-full caution-tape"></div>
-        
-        <!-- Marquee Ticker -->
-        <div class="bg-amber-500 text-zinc-950 font-black py-2.5 overflow-hidden text-sm md:text-base tracking-wide flex items-center">
-            <div class="animate-marquee whitespace-nowrap flex items-center justify-around gap-8">
-                <span class="flex items-center gap-2"><i class="fa-solid fa-triangle-exclamation text-lg"></i> تنبيه هام: الموقع خاضع للصيانة الدورية حالياً</span>
-                <span class="flex items-center gap-2"><i class="fa-solid fa-clock-rotate-left text-lg"></i> يرجى العودة لاحقاً وشكراً لتفهمكم</span>
-                <span class="flex items-center gap-2"><i class="fa-solid fa-screwdrivers-hop text-lg"></i> نعمل على إضافة تحديثات مميزة لخدمتكم بشكل أفضل</span>
-                <span class="flex items-center gap-2"><i class="fa-solid fa-triangle-exclamation text-lg"></i> تنبيه هام: الموقع خاضع للصيانة الدورية حالياً</span>
-                <span class="flex items-center gap-2"><i class="fa-solid fa-clock-rotate-left text-lg"></i> يرجى العودة لاحقاً وشكراً لتفهمكم</span>
-                <span class="flex items-center gap-2"><i class="fa-solid fa-screwdrivers-hop text-lg"></i> نعمل على إضافة تحديثات مميزة لخدمتكم بشكل أفضل</span>
+    <!-- الشريط العلوي -->
+    <header>
+        <div class="header-brand">
+            <button class="menu-toggle" id="openMenuBtn">☰</button>
+            <div class="brand-logo-container">
+                <div class="logo-icon">💡</div>
+                <div class="brand-text">
+                    <h1><span class="yellow">مرصد</span> <span class="blue">الفوتون</span></h1>
+                    <p>PHOTON OBSERVATORY</p>
+                </div>
             </div>
         </div>
     </header>
 
-    <!-- Main Content Section -->
-    <main class="flex-1 flex items-center justify-center p-4 md:p-8 relative">
-        
-        <!-- Background Ambient Glows -->
-        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[350px] md:w-[600px] h-[350px] md:h-[600px] bg-amber-500/10 rounded-full blur-[120px] pointer-events-none"></div>
-
-        <!-- Central Maintenance Card -->
-        <div class="glass-card max-w-2xl w-full rounded-3xl p-6 md:p-12 text-center relative z-10 shadow-2xl border border-zinc-800 my-6">
-            
-            <!-- Live Status Badge -->
-            <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs md:text-sm font-semibold mb-6">
-                <span class="relative flex h-2.5 w-2.5">
-                  <span class="pulse-ring-effect absolute inline-flex h-full w-full rounded-full bg-amber-400"></span>
-                  <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-amber-500"></span>
-                </span>
-                <span>جاري إجراء أعمال التحديث والصيانة</span>
-            </div>
-
-            <!-- Icon Avatar -->
-            <div class="relative w-24 h-24 md:w-28 md:h-28 mx-auto mb-6 flex items-center justify-center">
-                <div class="absolute inset-0 bg-amber-500/20 rounded-2xl rotate-6 animate-pulse"></div>
-                <div class="absolute inset-0 bg-zinc-900 border-2 border-amber-500/40 rounded-2xl -rotate-3 flex items-center justify-center shadow-lg">
-                    <i class="fa-solid fa-laptop-code text-4xl md:text-5xl text-amber-400"></i>
+    <!-- القائمة الجانبية -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="brand-logo-container">
+                <div class="logo-icon">💡</div>
+                <div class="brand-text">
+                    <h1><span class="yellow">مرصد</span> <span class="blue">الفوتون</span></h1>
                 </div>
             </div>
-
-            <!-- Heading -->
-            <h1 class="text-3xl md:text-5xl font-extrabold text-white mb-4 leading-tight">
-                الموقع <span class="text-amber-400 inline-block">تحت الصيانة</span> حالياً
-            </h1>
-
-            <!-- Subtitle -->
-            <p class="text-zinc-300 text-base md:text-lg mb-8 leading-relaxed max-w-lg mx-auto font-normal">
-                نعتذر عن عدم إمكانية تصفح الموقع في الوقت الحالي. نُجري حالياً بعض التحسينات والتطويرات لتقديم أفضل تجربة لكم.
-                <br>
-                <strong class="text-amber-300 font-bold block mt-2">نرجو منكم العودة والزيارة في وقت لاحق! ⚠️</strong>
-            </p>
-
-            <!-- Alert Card Banner -->
-            <div class="bg-zinc-900/90 border-r-4 border-amber-500 rounded-xl p-4 text-right mb-8 shadow-inner flex items-start gap-3">
-                <i class="fa-solid fa-triangle-exclamation text-amber-400 text-xl mt-0.5"></i>
-                <div>
-                    <h2 class="text-white text-sm font-bold">تنبيه لزوارنا الكرام</h2>
-                    <p class="text-zinc-400 text-xs md:text-sm mt-0.5">سنكون جاهزين لاستقبالكم فور انتهاء أعمال التطوير والصيانة.</p>
-                </div>
-            </div>
-
-            <!-- Refresh Button -->
-            <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
-                <button onclick="window.location.reload()" class="w-full sm:w-auto px-8 py-3.5 bg-amber-500 hover:bg-amber-400 text-zinc-950 font-extrabold rounded-xl transition duration-300 transform active:scale-95 shadow-lg shadow-amber-500/20 flex items-center justify-center gap-2">
-                    <i class="fa-solid fa-rotate-right"></i>
-                    <span>إعادة تحميل الصفحة</span>
-                </button>
-            </div>
+            <button class="close-sidebar" id="closeMenuBtn">✕</button>
         </div>
+        <ul class="nav-list">
+            <li class="nav-item">
+                <button class="active" data-target="home">🏠 الرئيسية</button>
+            </li>
+            <li class="nav-item">
+                <button data-target="lab">🔬 المختبر الافتراضي</button>
+            </li>
+            <li class="nav-item">
+                <button data-target="formulas">📚 مكتبة القوانين</button>
+            </li>
+            <li class="nav-item">
+                <button data-target="notebook">📓 دفتر التجارب</button>
+            </li>
+            <li class="nav-item">
+                <button data-target="references">🔗 المراجع العلمية</button>
+            </li>
+        </ul>
+        <div class="sidebar-footer">
+            إعداد: <strong>المهندسة غزلان المشعوف | 3/8</strong>
+        </div>
+    </aside>
+
+    <!-- محتوى الصفحات -->
+    <main>
+        <!-- 1. الرئيسية -->
+        <section id="home" class="page-section active">
+            <div class="card">
+                <h2>مرحباً بك في مرصد الفوتون 🌌</h2>
+                <p style="margin-top: 10px; line-height: 1.6; color: var(--text-muted);">
+                    منصة تعليمية تفاعلية تحاكي الظواهر الفيزيائية الحديثة ومكانيك الكم بصورة ثنائية الأبعاد تفاعلية، تتيح لك تجربة الفيزياء الكمية وملاحظة التفسير العلمي والمعادلات الرياضية لحظياً.
+                </p>
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 16px;">
+                <div class="card" style="text-align: center;">
+                    <h3>🔬 محاكاة 2D</h3>
+                    <p style="font-size: 13px; color: var(--text-muted); margin-top: 8px;">تفاعل مباشر مع الفوتونات والأطوال الموجية الشديدة.</p>
+                </div>
+                <div class="card" style="text-align: center;">
+                    <h3>⚡ التفسير العلمي</h3>
+                    <p style="font-size: 13px; color: var(--text-muted); margin-top: 8px;">تحليل فيزيائي فوري تدعمه صيغ الرياضيات الكوانتية.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 2. المختبر الافتراضي -->
+        <section id="lab" class="page-section">
+            <div class="lab-selector">
+                <button class="lab-btn active" onclick="switchExperiment('photoelectric')">⚡ الظاهرة الكهروضوئية</button>
+                <button class="lab-btn" onclick="switchExperiment('young')">🌊 تجربة شقي يونج</button>
+                <button class="lab-btn" onclick="switchExperiment('compton')">💥 تشتت كومتون</button>
+                <button class="lab-btn" onclick="switchExperiment('rutherford')">⚛️ تشتت رذرفورد</button>
+            </div>
+
+            <div class="grid-2">
+                <div>
+                    <div class="card">
+                        <canvas id="simCanvas"></canvas>
+                    </div>
+                </div>
+                <div>
+                    <div class="card">
+                        <h3>أدوات التحكم</h3>
+                        <div class="controls-group" id="controlsContainer">
+                            <!-- أدوات التحكم تظهر بالـ JS -->
+                        </div>
+                    </div>
+                    <div class="card">
+                        <h3>التفسير العلمي المباشر</h3>
+                        <div id="theoryOutput" style="margin-top: 10px; font-size: 14px; line-height: 1.6; color: var(--text-muted);">
+                            --
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 3. مكتبة القوانين -->
+        <section id="formulas" class="page-section">
+            <div class="card">
+                <h2>📚 مكتبة القوانين والثوابت الفيزيائية</h2>
+                <div style="margin-top: 15px; display: flex; flex-direction: column; gap: 15px;">
+                    <div>
+                        <h4>طاقة الفوتون:</h4>
+                        <p>$$E = h \cdot f = \frac{h \cdot c}{\lambda}$$</p>
+                    </div>
+                    <div>
+                        <h4>معادلة أينشتاين الكهروضوئية:</h4>
+                        <p>$$K_{max} = h \cdot f - \Phi = e \cdot V_s$$</p>
+                    </div>
+                    <div>
+                        <h4>إزاحة كومتون الموجية:</h4>
+                        <p>$$\Delta \lambda = \lambda' - \lambda = \frac{h}{m_e c} (1 - \cos\theta)$$</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 4. دفتر التجارب -->
+        <section id="notebook" class="page-section">
+            <div class="card">
+                <h2>📓 دفتر التجارب والملاحظات</h2>
+                <p style="font-size: 13px; color: var(--text-muted); margin-top: 5px;">دَوِّن نتائج تجاربك وحساباتك الفيزيائية هنا (تُحفظ تلقائياً):</p>
+                <textarea id="notesArea" placeholder="اكتب ملاحظاتك وتجاربك هنا..."></textarea>
+                <button class="btn-primary" onclick="saveNotes()">حفظ الملاحظات</button>
+            </div>
+        </section>
+
+        <!-- 5. المراجع العلمية -->
+        <section id="references" class="page-section">
+            <div class="card">
+                <h2>🔗 المراجع العلمية المعتمدة</h2>
+                <ul style="margin-top: 15px; margin-right: 20px; line-height: 2; color: var(--text-muted);">
+                    <li><strong>PhET Interactive Simulations</strong> - University of Colorado Boulder</li>
+                    <li><strong>Fundamentals of Physics</strong> - Halliday, Resnick, Walker (11th Edition)</li>
+                    <li><strong>Physics LibreTexts</strong> - Quantum Mechanics & Modern Physics Section</li>
+                    <li><strong>HyperPhysics</strong> - Georgia State University (Department of Physics)</li>
+                </ul>
+            </div>
+        </section>
     </main>
 
-    <!-- Footer Banner with Updated Copyright & Engineer Ghazlan Signature -->
-    <footer class="w-full relative z-20">
-        <!-- Bottom Caution Strip -->
-        <div class="h-3 w-full caution-tape"></div>
-        
-        <!-- Footer Content -->
-        <div class="bg-zinc-900 border-t border-zinc-800 text-zinc-300 py-4 px-4 text-center text-sm md:text-base flex flex-col items-center justify-center gap-1">
-            <p class="font-medium text-zinc-300">
-                © جميع الحقوق محفوظة - جاري تجهيز وإعداد الموقع لخدمتكم بشكل أفضل
-            </p>
-            <p class="text-xs md:text-sm text-amber-400 font-bold mt-1 flex items-center gap-1.5">
-                <i class="fa-solid fa-code text-xs"></i>
-                <span>تطوير وإشراف: المهندسة غزلان</span>
-            </p>
-        </div>
+    <!-- التذييل الرئيسي -->
+    <footer>
+        من إعداد المهندسة : <strong>غزلان المشعوف | 3/8</strong>
     </footer>
 
+    <!-- برمجة التفاعل والتجارب -->
+    <script>
+        // --- التحكم بالقائمة الجانبية والصفحات ---
+        const openMenuBtn = document.getElementById('openMenuBtn');
+        const closeMenuBtn = document.getElementById('closeMenuBtn');
+        const sidebar = document.getElementById('sidebar');
+        const sidebarOverlay = document.getElementById('sidebarOverlay');
+        const navButtons = document.querySelectorAll('.nav-item button');
+        const sections = document.querySelectorAll('.page-section');
+
+        function toggleSidebar(show) {
+            if (show) {
+                sidebar.classList.add('active');
+                sidebarOverlay.classList.add('active');
+            } else {
+                sidebar.classList.remove('active');
+                sidebarOverlay.classList.remove('active');
+            }
+        }
+
+        openMenuBtn.addEventListener('click', () => toggleSidebar(true));
+        closeMenuBtn.addEventListener('click', () => toggleSidebar(false));
+        sidebarOverlay.addEventListener('click', () => toggleSidebar(false));
+
+        navButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const target = btn.getAttribute('data-target');
+                navButtons.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+
+                sections.forEach(sec => {
+                    if (sec.id === target) {
+                        sec.classList.add('active');
+                    } else {
+                        sec.classList.remove('active');
+                    }
+                });
+
+                toggleSidebar(false);
+                if(target === 'lab') initCanvas();
+            });
+        });
+
+        // --- محاكي Canvas للتجارب ---
+        let canvas, ctx;
+        let currentExp = 'photoelectric';
+        let animId;
+
+        // متغيرات تجربة الكهروضوئية
+        let wavelength = 350; // nm
+        let intensity = 5;
+        let metalWorkFunction = 2.1; // eV (Cesium)
+
+        function initCanvas() {
+            canvas = document.getElementById('simCanvas');
+            if(!canvas) return;
+            ctx = canvas.getContext('2d');
+            canvas.width = canvas.parentElement.clientWidth;
+            canvas.height = 380;
+            renderControls();
+            startLoop();
+        }
+
+        function switchExperiment(exp) {
+            currentExp = exp;
+            document.querySelectorAll('.lab-btn').forEach(b => b.classList.remove('active'));
+            event.target.classList.add('active');
+            renderControls();
+        }
+
+        function renderControls() {
+            const container = document.getElementById('controlsContainer');
+            const theory = document.getElementById('theoryOutput');
+            
+            if (currentExp === 'photoelectric') {
+                container.innerHTML = `
+                    <div class="control-item">
+                        <label>الطول الموجي ($\lambda$): <span id="waveVal">${wavelength} nm</span></label>
+                        <input type="range" min="100" max="700" value="${wavelength}" oninput="wavelength=this.value; document.getElementById('waveVal').innerText=this.value+' nm'; updateTheory();">
+                    </div>
+                    <div class="control-item">
+                        <label>شدة الضوء: <span id="intVal">${intensity}</span></label>
+                        <input type="range" min="1" max="10" value="${intensity}" oninput="intensity=this.value; document.getElementById('intVal').innerText=this.value; updateTheory();">
+                    </div>
+                `;
+                updateTheory();
+            } else {
+                container.innerHTML = `<p style="font-size: 13px; color: var(--text-muted);">التجربة قيد التشغيل التفاعلي المبسط.</p>`;
+                theory.innerHTML = `محاكاة تفاعلية مبسطة لـ ${currentExp}.`;
+            }
+        }
+
+        function updateTheory() {
+            if (currentExp === 'photoelectric') {
+                const h = 1240; // eV.nm
+                const E = (h / wavelength).toFixed(2);
+                const K = (E - metalWorkFunction).toFixed(2);
+                const theory = document.getElementById('theoryOutput');
+
+                if (K > 0) {
+                    theory.innerHTML = `
+                        طاقة الفوتون الساقط: <b>${E} eV</b><br>
+                        دالة شغل المعدن: <b>${metalWorkFunction} eV</b><br>
+                        <span style="color: #4ade80;">تتحرر إلكترونات بالطاقة الحركية العظمى: <b>${K} eV</b></span>
+                    `;
+                } else {
+                    theory.innerHTML = `
+                        طاقة الفوتون الساقط: <b>${E} eV</b><br>
+                        دالة شغل المعدن: <b>${metalWorkFunction} eV</b><br>
+                        <span style="color: #f87171;">الطاقة غير كافية لتحرير الإلكترونات ($E < \Phi$).</span>
+                    `;
+                }
+                if(window.MathJax) MathJax.typesetPromise();
+            }
+        }
+
+        let particles = [];
+        function startLoop() {
+            if(animId) cancelAnimationFrame(animId);
+
+            function loop() {
+                if(!ctx) return;
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                if (currentExp === 'photoelectric') {
+                    // رسم اللوح المعدني
+                    ctx.fillStyle = "#334155";
+                    ctx.fillRect(canvas.width - 60, 50, 20, 280);
+
+                    // إطلاق فوتونات
+                    if(Math.random() < intensity * 0.05) {
+                        particles.push({
+                            x: 50,
+                            y: 100 + Math.random() * 180,
+                            vx: 4,
+                            type: 'photon'
+                        });
+                    }
+
+                    // تحديث ورسم الجسيمات
+                    for(let i = particles.length - 1; i >= 0; i--) {
+                        let p = particles[i];
+                        p.x += p.vx;
+
+                        if(p.type === 'photon') {
+                            ctx.fillStyle = wavelength < 400 ? "#a855f7" : (wavelength < 550 ? "#38bdf8" : "#f59e0b");
+                            ctx.beginPath();
+                            ctx.arc(p.x, p.y, 4, 0, Math.PI*2);
+                            ctx.fill();
+
+                            // اصطدام بالمعدن
+                            if(p.x >= canvas.width - 60) {
+                                const E = 1240 / wavelength;
+                                if(E > metalWorkFunction) {
+                                    particles.push({
+                                        x: canvas.width - 65,
+                                        y: p.y,
+                                        vx: -(2 + (E - metalWorkFunction)),
+                                        type: 'electron'
+                                    });
+                                }
+                                particles.splice(i, 1);
+                            }
+                        } else if(p.type === 'electron') {
+                            ctx.fillStyle = "#60a5fa";
+                            ctx.beginPath();
+                            ctx.arc(p.x, p.y, 3, 0, Math.PI*2);
+                            ctx.fill();
+
+                            if(p.x < 0) particles.splice(i, 1);
+                        }
+                    }
+                } else {
+                    ctx.fillStyle = "#94a3b8";
+                    ctx.font = "16px Tajawal";
+                    ctx.fillText("محاكاة تفاعلية جارية...", canvas.width/2 - 70, canvas.height/2);
+                }
+
+                animId = requestAnimationFrame(loop);
+            }
+            loop();
+        }
+
+        // --- حفظ الملاحظات ---
+        function saveNotes() {
+            const val = document.getElementById('notesArea').value;
+            localStorage.setItem('photon_notes', val);
+            alert('تم حفظ الملاحظات بنجاح!');
+        }
+
+        window.onload = () => {
+            const saved = localStorage.getItem('photon_notes');
+            if(saved) document.getElementById('notesArea').value = saved;
+        };
+    </script>
 </body>
 </html>
