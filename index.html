@@ -245,6 +245,9 @@
                             <span id="rec-status" class="text-xs text-gray-400"></span>
                         </div>
 
+                        <!-- Recorded video result -->
+                        <div id="rec-result" class="hidden w-full glass-panel p-4 rounded-xl border border-emerald-500/30 space-y-3"></div>
+
                         <!-- Live Calculations Display -->
                         <div id="live-results" class="w-full grid grid-cols-2 sm:grid-cols-3 gap-3"></div>
                     </div>
@@ -1252,6 +1255,41 @@
         $('rec-status').textContent = on ? 'جارٍ التسجيل… (يلتقط الحركة كما تظهر على اللوحة)' : '';
     }
 
+    let recUrl = null;
+
+    function clearRecResult() {
+        const box = $('rec-result');
+        box.classList.add('hidden');
+        box.innerHTML = '';
+        if (recUrl) { URL.revokeObjectURL(recUrl); recUrl = null; }
+    }
+
+    function showRecResult(url, filename) {
+        const box = $('rec-result');
+        box.innerHTML = '';
+
+        const title = document.createElement('p');
+        title.className = 'text-sm font-bold text-emerald-300';
+        title.textContent = 'فيديو التجربة جاهز';
+
+        const video = document.createElement('video');
+        video.src = url;
+        video.controls = true;
+        video.playsInline = true;
+        video.setAttribute('playsinline', '');
+        video.preload = 'auto';
+        video.className = 'w-full rounded-xl bg-black border border-gray-800';
+
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = filename;
+        link.className = 'inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-black font-extrabold text-sm transition';
+        link.innerHTML = '<i class="fa-solid fa-download"></i> تحميل الفيديو';
+
+        box.append(title, video, link);
+        box.classList.remove('hidden');
+    }
+
     function toggleRecord() {
         if (recorder && recorder.state !== 'inactive') { recorder.stop(); return; }
         const cv = $('simCanvas');
@@ -1263,6 +1301,7 @@
         const mime = types.find(t => MediaRecorder.isTypeSupported(t));
         if (!mime) { toast('لا يوجد تنسيق فيديو مدعوم في هذا المتصفح.', 'error'); return; }
 
+        clearRecResult();
         sim.running = true; updatePlayBtn();
         recChunks = [];
         try {
@@ -1273,16 +1312,14 @@
         recorder.ondataavailable = e => { if (e.data && e.data.size) recChunks.push(e.data); };
         recorder.onstop = () => {
             clearTimeout(recTimer);
-            const ext = mime.startsWith('video/mp4') ? 'mp4' : 'webm';
-            const blob = new Blob(recChunks, { type: mime.split(';')[0] });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `photon-${EXP_KEYS[currentExpId]}-${Date.now()}.${ext}`;
-            document.body.appendChild(a); a.click(); a.remove();
-            setTimeout(() => URL.revokeObjectURL(url), 5000);
+            const baseType = mime.split(';')[0];
+            const ext = baseType === 'video/mp4' ? 'mp4' : 'webm';
+            const blob = new Blob(recChunks, { type: baseType });
             setRecUI(false);
-            toast('تم تنزيل ملف الفيديو');
+            if (!blob.size) { toast('لم يتم التقاط أي فيديو، حاولي مرة أخرى.', 'error'); return; }
+            recUrl = URL.createObjectURL(blob);
+            showRecResult(recUrl, `photon-${EXP_KEYS[currentExpId]}-${Date.now()}.${ext}`);
+            toast('الفيديو جاهز، شاهديه ثم حمّليه');
         };
         recorder.start(250);
         setRecUI(true);
