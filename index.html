@@ -388,7 +388,7 @@
     const DEFAULTS = {
         1: { n1: 1.0, n2: 1.5, angle: 45 },
         2: { type: 'convex', f: 50, do: 120, ho: 40 },
-        3: { type: 'concave', f: 40, do: 90, ho: 30 },
+        3: { type: 'concave', f: 40, do: 90, ho: 10 },
         4: { power: 2000, distance: 2.0, angle: 0 },
         5: { wavelength: 550, d: 0.5, L: 2.0 }
     };
@@ -447,7 +447,7 @@
         },
         3: {
             title: 'لوحة التحكم - المرايا الكروية',
-            formula: '1/f = 1/dₒ + 1/dᵢ    ،    R = 2f',
+            formula: '1/f = 1/dₒ + 1/dᵢ    ،    r = 2f',
             explain: 'تخضع المرايا الكروية (المقعرة والمحدبة) لمعادلة المرآة نفسها: 1/f = 1/dₒ + 1/dᵢ مع مراعاة اصطلاح الإشارات: البعد البؤري للمرآة المقعرة موجب وللمحدبة سالب. الشعاع الموازي للمحور ينعكس مارّاً بالبؤرة، والشعاع المار بالبؤرة ينعكس موازياً للمحور، والشعاع المار بالمركز ينعكس على نفسه. تقاطع الأشعة المنعكسة يحدد موضع الصورة.',
             steps: [
                 '<span class="text-amber-400 font-bold">1. قبل التجربة:</span> كيف تختلف صفات الصورة في المرآة المحدبة عن المرآة المقعرة؟',
@@ -550,7 +550,26 @@
     function compute3(s) {
         const fs = s.type === 'concave' ? s.f : -s.f;
         const c = imageCore(fs, s.do, s.ho);
-        return lensMirrorResult(c, s, 'mirror');
+        const out = lensMirrorResult(c, s, 'mirror');
+        if (!c.infinite) {
+            // مقارنة الرسم (تتبّع الأشعة الفعلي) بقانون المرايا التقريبي
+            const tr = traceMirror(s.type === 'concave', s.f, s.do, s.ho);
+            if (tr.rays.length < 2) {
+                out.warnings.push({ level: 'warn', text: 'ارتفاع الجسم كبير بالنسبة لنصف قطر التكوّر r: لا يصل الشعاع الموازي إلى السطح، لذلك تُرسم الأشعة المتاحة فقط.' });
+            } else if (tr.I) {
+                const dev = Math.hypot(tr.I.x + c.di, tr.I.y - c.hi) * mirrorScale(Math.abs(s.f), s.do, s.type === 'concave');  // بالبكسل
+                const typeMismatch = tr.virtual !== c.virtual;
+                if (typeMismatch) {
+                    out.warnings.push({ level: 'warn', text: 'في هذا الوضع تختلف طبيعة الصورة المرسومة عن نتيجة قانون المرايا التقريبي (الجسم قريب من البؤرة والأشعة تصيب السطح بعيداً عن القطب). القيمة الحسابية تقريب للأشعة القريبة من المحور، ولا تصلح هنا.' });
+                } else if (dev > 2) {
+                    const big = dev / Math.max(Math.abs(c.di) * mirrorScale(Math.abs(s.f), s.do, s.type === 'concave'), 1) > 0.03;
+                    out.warnings.push({ level: 'info', text: big
+                        ? 'الرسم يتبع قانون الانعكاس عند نقط السقوط الفعلية على السطح، والقيمة الحسابية تقريب للأشعة القريبة من المحور. في هذا الوضع يختلف موضع الصورة المرسومة اختلافاً ملحوظاً عنها (الزيغ الكروي)، ويقل الفرق كلما صغُر hₒ بالنسبة إلى r، وبعُد الجسم عن البؤرة.'
+                        : 'الرسم يتبع قانون الانعكاس عند نقط السقوط الفعلية على السطح، والقيمة الحسابية تقريب للأشعة القريبة من المحور؛ الفرق بينهما صغير في هذا الوضع.' });
+                }
+            }
+        }
+        return out;
     }
 
     function lensMirrorResult(c, s, kind) {
@@ -559,7 +578,7 @@
         const orient = c.infinite ? '—' : (c.m < 0 ? 'مقلوبة' : 'معتدلة');
         const size = c.infinite ? '—' : (Math.abs(c.m) > 1.001 ? 'مكبّرة' : (Math.abs(c.m) < 0.999 ? 'مصغّرة' : 'بالحجم نفسه'));
         if (c.infinite) warnings.push({ level: 'info', text: 'الجسم في البؤرة تماماً: الأشعة الخارجة متوازية والصورة في اللانهاية.' });
-        else if (c.virtual) warnings.push({ level: 'info', text: 'الصورة خيالية: تتكوّن في جهة الجسم (العدسة) أو خلف المرآة، وتُرسم الأشعة الممتدة بخط متقطع.' });
+        else if (c.virtual) warnings.push({ level: 'info', text: kind === 'mirror' ? 'الصورة خيالية: تتكوّن خلف المرآة، وتُرسم امتدادات الأشعة المنعكسة بخط متقطع.' : 'الصورة خيالية: تتكوّن في جهة الجسم (العدسة)، وتُرسم الأشعة الممتدة بخط متقطع.' });
         if (!c.infinite && Math.abs(c.di) * LENS_PX_PER_CM > 300)
             warnings.push({ level: 'warn', text: 'موضع الصورة يقع خارج حدود الشاشة؛ الحساب دقيق لكن الرسم مقتطع.' });
         const power = 100 / c.fs; // بالديوبتر، f بالسنتيمتر
@@ -567,7 +586,7 @@
             { label: c.infinite ? 'بعد الصورة (dᵢ)' : 'بعد الصورة (dᵢ)', value: c.infinite ? '∞' : c.di.toFixed(1), unit: c.infinite ? '' : 'سم' },
             { label: 'التكبير (m)', value: c.infinite ? '—' : c.m.toFixed(2), unit: '' },
             { label: 'ارتفاع الصورة (hᵢ)', value: c.infinite ? '—' : c.hi.toFixed(1), unit: c.infinite ? '' : 'سم' },
-            { label: kind === 'lens' ? 'القدرة البصرية (P)' : 'نصف قطر الانحناء (R)', value: kind === 'lens' ? power.toFixed(2) : (2 * c.fs).toFixed(1), unit: kind === 'lens' ? 'D' : 'سم' },
+            { label: kind === 'lens' ? 'القدرة البصرية (P)' : 'نصف قطر التكوّر (r)', value: kind === 'lens' ? power.toFixed(2) : (2 * c.fs).toFixed(1), unit: kind === 'lens' ? 'D' : 'سم' },
             { label: 'طبيعة الصورة', value: `${nature} / ${orient} / ${size}`, unit: '' }
         ];
         return { results, warnings, data: { ...c, kind, ho: s.ho } };
@@ -826,52 +845,268 @@
         ctx.fillText(label, x, y - 8);
     }
 
+    // انعكاس شعاع من P نحو الصورة I:
+    // الحقيقية: الأشعة تتلاقى عند I ثم تستمر بعدها (كما في الشكلين 5-9 و5-10).
+    // الخيالية: الشعاع المنعكس يبتعد عن I، وامتداده خلف المرآة نحو I يُرسم متقطعاً (الشكل 5-13).
+    function reflectTo(ctx, P, I, virtual, color) {
+        ctx.save();
+        ctx.strokeStyle = color; ctx.lineWidth = 2;
+        if (!virtual) {
+            const ex = rayExit(P, unitVec(I.x - P.x, I.y - P.y));
+            line(ctx, P.x, P.y, ex.x, ex.y);
+            ctx.restore();
+            return ex;
+        }
+        ctx.setLineDash([6, 5]);
+        line(ctx, P.x, P.y, I.x, I.y);
+        ctx.setLineDash([]);
+        const ex = rayExit(P, unitVec(P.x - I.x, P.y - I.y));
+        line(ctx, P.x, P.y, ex.x, ex.y);
+        ctx.restore();
+        return ex;
+    }
+
+    // ---------- المرآة الكروية: تتبّع الأشعة الفعلي ----------
+    // الإحداثيات بالسنتيمتر: القطب M في الأصل، والمحور الرئيس أفقي، وy موجبة نحو الأعلى.
+    // كل شعاع ينعكس وفق قانون الانعكاس (زاوية السقوط = زاوية الانعكاس) عند نقطة سقوطه الفعلية على السطح.
+    // نصف فتحة القطعة المرسومة من المرآة، ويكفي هامشها لاستقبال أعلى شعاع من الجسم.
+    // مقياس الرسم بالبكسل لكل سم في المرآة: يكبر الرسم ليبقى واضحاً، ويتسع المكان للمرآة والجسم داخل اللوحة
+    function mirrorScale(fcm, dO, concave) {
+        const di = concave ? fcm * dO / (dO - fcm) : fcm * dO / (dO + fcm);   // بُعد الصورة (بالقيمة المطلقة)
+        const dAbs = Math.max(Math.abs(di), 1);
+        const virtual = concave ? dO < fcm : true;   // الصورة الخيالية خلف المرآة، وفراغ الرسم هناك أقل
+        const room = virtual ? 140 : 440;
+        return Math.min(2.2, 170 / (2 * fcm), 430 / Math.max(dO, 1), Math.max(1.2, room / dAbs));
+    }
+
+    function mirrorArc(ho, Rcm, kpx) {
+        const sinA = Math.min(0.97, Math.max(0.55, (ho + 30 / kpx) / Rcm));
+        return { sinA, H: Rcm * sinA };
+    }
+
+    // يعيد الشعاعين الرئيسين (الموازي للمحور، والمتجه نحو البؤرة) بعد انعكاسهما الفعلي،
+    // وتقاطع الشعاعين المنعكسين (أو امتدادهما) هو موضع الصورة I.
+    function traceMirror(concave, fcm, dO, ho) {
+        const Rr = 2 * fcm, sgn = concave ? -1 : 1, side = concave ? 1 : -1;
+        const H = mirrorArc(ho, Rr, mirrorScale(fcm, dO, concave)).H;
+        const C = { x: sgn * Rr, y: 0 }, F = { x: sgn * fcm, y: 0 };
+        const T = { x: -dO, y: ho }, V = { x: 0, y: 0 };
+        // أول نقطة يلتقي بها الشعاع بالوجه العاكس المواجه للجسم، وتقع ضمن القطعة المرسومة
+        const hitSphere = (P0, u) => {
+            const ox = P0.x - C.x, oy = P0.y - C.y;
+            const b = ox * u.x + oy * u.y, cc = ox * ox + oy * oy - Rr * Rr, disc = b * b - cc;
+            if (disc < 0) return null;
+            const sq = Math.sqrt(disc);
+            for (const tt of [-b - sq, -b + sq]) {
+                if (tt <= 1e-9) continue;
+                const P = { x: P0.x + tt * u.x, y: P0.y + tt * u.y };
+                if (side * (P.x - C.x) > 0 && Math.abs(P.y) <= H + 1e-6) return P;
+            }
+            return null;
+        };
+        // قانون الانعكاس: r = u − 2(u·n)n، والعمود n على السطح عند P
+        const reflect = (u, P) => {
+            const nx = (P.x - C.x) / Rr, ny = (P.y - C.y) / Rr, dn = u.x * nx + u.y * ny;
+            return { x: u.x - 2 * dn * nx, y: u.y - 2 * dn * ny };
+        };
+        const unit = (x, y) => { const L = Math.hypot(x, y) || 1; return { x: x / L, y: y / L }; };
+
+        const rays = [];
+        const uPar = { x: 1, y: 0 }, Ppar = hitSphere(T, uPar);
+        if (Ppar) rays.push({ kind: 'par', P: Ppar, u: uPar });
+        let dx = F.x - T.x, dy = F.y - T.y;
+        if (dx < 0) { dx = -dx; dy = -dy; }                 // الاتجاه نحو المرآة
+        if (Math.abs(dx) > 1e-9) {
+            const uF = unit(dx, dy), PF = hitSphere(T, uF);
+            if (PF) rays.push({ kind: 'F', P: PF, u: uF });
+        }
+        if (rays.length < 2) {                              // احتياطياً: الشعاع المار بالقطب
+            const uP = unit(V.x - T.x, V.y - T.y), PP = hitSphere(T, uP);
+            if (PP && !rays.some(r => Math.hypot(r.P.x - PP.x, r.P.y - PP.y) < 1e-9)) rays.push({ kind: 'pole', P: PP, u: uP });
+        }
+        const out = { C, F, R: Rr, rays: rays.map(r => ({ ...r, r: reflect(r.u, r.P) })), I: null, virtual: false };
+        if (rays.length < 2) return out;
+        const a = out.rays[0], b = out.rays[1];
+        const det = -a.r.x * b.r.y + b.r.x * a.r.y;
+        if (Math.abs(det) < 1e-12) return out;             // الشعاعان متوازيان: الصورة في اللانهاية
+        const Dx = b.P.x - a.P.x, Dy = b.P.y - a.P.y;
+        const s = (-Dx * b.r.y + b.r.x * Dy) / det;
+        out.I = { x: a.P.x + s * a.r.x, y: a.P.y + s * a.r.y };
+        out.virtual = s < 0;                               // الأشعة المنعكسة تتباعد: الصورة خيالية
+        return out;
+    }
+
+    // قياس بُعد أفقي (dₒ أو dᵢ أو f أو r) بخط ذي طرفين، كما في الكتاب
+    function dimension(ctx, x1, x2, y, label) {
+        const a = Math.min(x1, x2), b = Math.max(x1, x2);
+        ctx.save();
+        ctx.strokeStyle = 'rgba(255,255,255,0.5)'; ctx.lineWidth = 1.2;
+        line(ctx, a, y, b, y);
+        line(ctx, a, y - 5, a, y + 5);
+        line(ctx, b, y - 5, b, y + 5);
+        ctx.font = '13px Cairo, sans-serif'; ctx.textAlign = 'center'; ctx.fillStyle = '#e5e7eb';
+        ctx.fillText(label, (a + b) / 2, y - 7);
+        ctx.restore();
+    }
+
+    // زاوية بين شعاعين عند نقطة P: قوس صغير مع رمزها، كما في شكل الكتاب 5-8
+    function angleMark(ctx, P, v1, v2, rad, label, color) {
+        const a1 = Math.atan2(v1.y, v1.x), a2 = Math.atan2(v2.y, v2.x);
+        let da = a2 - a1;
+        while (da > Math.PI) da -= 2 * Math.PI;
+        while (da < -Math.PI) da += 2 * Math.PI;
+        ctx.save();
+        ctx.strokeStyle = color; ctx.lineWidth = 1.2;
+        ctx.beginPath(); ctx.arc(P.x, P.y, rad, a1, a1 + da, da < 0); ctx.stroke();
+        const am = a1 + da / 2, lr = rad + 10;
+        ctx.font = '12px Cairo, sans-serif'; ctx.fillStyle = color; ctx.textAlign = 'center';
+        ctx.fillText(label, P.x + Math.cos(am) * lr, P.y + Math.sin(am) * lr + 4);
+        ctx.restore();
+    }
+
+    // المرآة الكروية بطريقة الكتاب (الأشكال 5-8 و5-13 و5-14):
+    //  شعاع 1 موازٍ للمحور الرئيس، ينعكس مارّاً بالبؤرة (في المحدبة: امتداده المنعكس مارّ بالبؤرة الخلفية).
+    //  شعاع 2 متجه نحو البؤرة (أو امتداده مارّ بها)، ينعكس موازياً للمحور الرئيس.
+    //  تُرسم الأشعة من نقط سقوطها الفعلية على السطح، وينعكس كل منها وفق قانون الانعكاس:
+    //  زاوية السقوط θᵢ = زاوية الانعكاس θᵣ بالنسبة إلى العمود CP. موضع الصورة I1 هو تقاطع الأشعة المنعكسة أو امتدادها.
     function drawMirror(ctx, t, c, s) {
-        const cx = MIRROR_CX, cy = SIM_H / 2, k = LENS_PX_PER_CM;
+        const cx = MIRROR_CX, cy = SIM_H / 2;
         const d = c.data;
         const concave = s.type === 'concave';
-        const R = 2 * Math.abs(d.fs) * k;
-        const alpha = Math.min(0.85, Math.asin(Math.min(1, (SIM_H / 2 - 30) / R)));
+        const sgn = concave ? -1 : 1;              // المقعرة: البؤرة والمركز أمام السطح، والمحدبة: خلفه
+        const fcm = Math.abs(d.fs);
+        const k = mirrorScale(fcm, d.dO, concave); // بكسل لكل سم في هذا الرسم
+        const f = fcm * k;                         // البعد البؤري بالبكسل
+        const R = 2 * f;                           // نصف قطر التكوّر r = 2f
+        const Fx = cx + sgn * f, Cx = cx + sgn * R;
+        const xo = cx - d.dO * k, yT = cy - d.ho * k;
+        const T = { x: xo, y: yT }, V = { x: cx, y: cy };
+        const COL = {
+            ray: '#ef4444', rayDim: 'rgba(239,68,68,0.6)', obj: '#a855f7', img: '#f0abfc',
+            surface: '#7dd3fc', normal: '#94a3b8', angle: '#fde68a', axis: 'rgba(255,255,255,0.35)'
+        };
 
-        ctx.strokeStyle = 'rgba(255,255,255,0.25)'; ctx.lineWidth = 1.2; line(ctx, 0, cy, SIM_W, cy);
+        // القطعة المرسومة من السطح
+        const arc = mirrorArc(d.ho, 2 * fcm, k);
+        const alpha = Math.asin(arc.sinA);
+        const H = arc.H * k;
+        // نقطة السطح على الارتفاع y (للشعاع الموازي للمحور في حالة الجسم في البؤرة)
+        const capAtHeight = (y) => {
+            const dy = y - cy, root = Math.sqrt(Math.max(0, R * R - dy * dy));
+            return { x: concave ? Cx + root : Cx - root, y };
+        };
 
-        // سطح المرآة
-        ctx.strokeStyle = '#f59e0b'; ctx.lineWidth = 5;
+        // المحور الرئيس
+        ctx.strokeStyle = COL.axis; ctx.lineWidth = 1.2; line(ctx, 0, cy, SIM_W, cy);
+        ctx.font = '12px Cairo, sans-serif'; ctx.textAlign = 'left'; ctx.fillStyle = '#9ca3af';
+        ctx.fillText('المحور الرئيس', 12, cy - 8);
+
+        // سطح المرآة بلون مميّز كما في الكتاب
+        ctx.save();
+        ctx.strokeStyle = COL.surface; ctx.lineWidth = 6; ctx.lineCap = 'round';
         ctx.beginPath();
-        if (concave) ctx.arc(cx - R, cy, R, -alpha, alpha);
-        else ctx.arc(cx + R, cy, R, Math.PI - alpha, Math.PI + alpha);
+        if (concave) ctx.arc(Cx, cy, R, -alpha, alpha);
+        else ctx.arc(Cx, cy, R, Math.PI - alpha, Math.PI + alpha);
         ctx.stroke();
+        ctx.restore();
+        const phiS = concave ? -0.85 * alpha : Math.PI + 0.85 * alpha;
+        const Ps = { x: Cx + R * Math.cos(phiS), y: cy + R * Math.sin(phiS) };
+        ctx.save(); ctx.strokeStyle = 'rgba(125,211,252,0.7)'; ctx.lineWidth = 1;
+        line(ctx, Ps.x, Ps.y, Ps.x + (concave ? 26 : -26), Ps.y - 18);
+        ctx.font = '12px Cairo, sans-serif'; ctx.fillStyle = COL.surface;
+        ctx.textAlign = concave ? 'left' : 'right';
+        ctx.fillText('سطح المرآة', Ps.x + (concave ? 28 : -28), Ps.y - 20);
+        ctx.restore();
 
-        // البؤرة ومركز التقوس
-        const Fx = cx - d.fs * k, Cx = cx - 2 * d.fs * k;
+        // القطب M
+        ctx.fillStyle = COL.surface; ctx.beginPath(); ctx.arc(cx, cy, 2.5, 0, Math.PI * 2); ctx.fill();
+        ctx.font = '13px Cairo, sans-serif'; ctx.fillStyle = '#e5e7eb';
+        ctx.textAlign = concave ? 'left' : 'right';
+        ctx.fillText('M', cx + (concave ? 8 : -8), cy + 16);
+
+        // البؤرة ومركز التكوّر (في المحدبة تقعان خلف المرآة)
         drawFocus(ctx, Fx, cy, 'F');
         drawFocus(ctx, Cx, cy, 'C');
 
-        // الجسم
-        const xo = cx - d.dO * k, yT = cy - d.ho * k;
-        drawArrow(ctx, xo, cy, xo, yT, '#38bdf8', 3);
-        ctx.font = '13px Cairo, sans-serif'; ctx.textAlign = 'center';
-        ctx.fillStyle = '#38bdf8'; ctx.fillText('جسم', xo, cy + 22);
+        // الجسم O1
+        drawArrow(ctx, xo, cy, xo, yT, COL.obj, 3);
+        ctx.font = '13px Cairo, sans-serif'; ctx.textAlign = 'center'; ctx.fillStyle = COL.obj;
+        ctx.fillText('الجسم', xo, cy + 22);
+        ctx.textAlign = 'left'; ctx.fillStyle = '#e5e7eb'; ctx.fillText('O₁', xo + 8, yT - 4);
 
-        const T = { x: xo, y: yT }, M = { x: cx, y: yT }, V = { x: cx, y: cy };
         if (d.infinite) {
-            drawArrow(ctx, T.x, T.y, M.x, M.y, 'rgba(56,189,248,0.9)', 2);
-            const ex = rayExit(M, { x: -1, y: 0 });
-            ctx.strokeStyle = 'rgba(56,189,248,0.9)'; ctx.lineWidth = 2; line(ctx, M.x, M.y, ex.x, ex.y);
-            ctx.fillStyle = '#fbbf24'; ctx.textAlign = 'left';
-            ctx.fillText('الأشعة متوازية (الصورة في اللانهاية)', 16, 58);
-            drawPackets(ctx, [T, M, ex], null, ['#38bdf8', '#38bdf8'], t, 120, 6);
+            // الجسم في البؤرة: الأشعة المنعكسة متوازية واتجاهها واحد
+            const dir = unitVec(-(cx - xo), cy - yT);
+            const M1 = capAtHeight(yT);
+            if (Math.abs(yT - cy) <= H) {
+                drawArrow(ctx, T.x, T.y, M1.x, M1.y, COL.ray, 2);
+                const ex1 = rayExit(M1, dir);
+                ctx.strokeStyle = COL.ray; ctx.lineWidth = 2; line(ctx, M1.x, M1.y, ex1.x, ex1.y);
+                drawPackets(ctx, [T, M1, ex1], null, [COL.ray, COL.ray], t, 120, 4);
+            }
+            drawArrow(ctx, T.x, T.y, V.x, V.y, COL.normal, 1.6);
+            const exV = rayExit(V, dir);
+            ctx.strokeStyle = COL.normal; ctx.lineWidth = 1.6; line(ctx, V.x, V.y, exV.x, exV.y);
+            drawPackets(ctx, [T, V, exV], null, [COL.normal, COL.normal], t, 120, 2);
+            ctx.font = '13px Cairo, sans-serif'; ctx.textAlign = 'left'; ctx.fillStyle = '#fbbf24';
+            ctx.fillText('الأشعة المنعكسة متوازية (الصورة في اللانهاية)', 16, 58);
         } else {
-            const I = { x: cx - d.di * k, y: cy - d.hi * k };
-            drawArrow(ctx, T.x, T.y, M.x, M.y, 'rgba(56,189,248,0.9)', 2);
-            const exA = outgoingRay(ctx, M, I, d.virtual, 'rgba(56,189,248,0.9)');
-            drawArrow(ctx, T.x, T.y, V.x, V.y, 'rgba(56,189,248,0.5)', 1.6);
-            const exB = outgoingRay(ctx, V, I, d.virtual, 'rgba(56,189,248,0.5)');
-            drawArrow(ctx, I.x, cy, I.x, I.y, '#34d399', 3, d.virtual);
-            ctx.fillStyle = '#34d399'; ctx.textAlign = 'center';
-            ctx.fillText('صورة', I.x, cy + (d.hi > 0 ? 22 : -10));
-            drawPackets(ctx, [T, M, exA], null, ['#38bdf8', '#38bdf8'], t, 120, 6);
-            drawPackets(ctx, [T, V, exB], null, ['rgba(56,189,248,0.8)', 'rgba(56,189,248,0.8)'], t, 120, 3);
+            // تتبّع الأشعة الفعلي: كل شعاع ينعكس وفق قانون الانعكاس عند نقطة سقوطه
+            const tr = traceMirror(concave, fcm, d.dO, d.ho);
+            const toPx = (p) => ({ x: cx + p.x * k, y: cy - p.y * k });
+            const Fp = toPx(tr.F), Cp = { x: Cx, y: cy };
+            const I = tr.I ? toPx(tr.I) : { x: cx - d.di * k, y: cy - d.hi * k };
+            const virt = tr.I ? tr.virtual : !!d.virtual;
+
+            for (const ray of tr.rays) {
+                const P = toPx(ray.P);
+                drawArrow(ctx, T.x, T.y, P.x, P.y, COL.ray, 2);
+                if (ray.kind === 'F') {
+                    // امتداد الشعاع 2 المتقطع: خلف الجسم إذا كانت البؤرة أمامه، أو خلف المرآة للمحدبة
+                    ctx.save(); ctx.strokeStyle = COL.rayDim; ctx.lineWidth = 1.5; ctx.setLineDash([6, 5]);
+                    if (Fp.x < T.x) line(ctx, Fp.x, Fp.y, T.x, T.y);
+                    if (Fp.x > cx) line(ctx, P.x, P.y, Fp.x, Fp.y);
+                    ctx.restore();
+                }
+                const end = reflectTo(ctx, P, I, virt, COL.ray);
+                drawPackets(ctx, [T, P, end], null, [COL.ray, COL.ray], t, 120, 3);
+
+                // أسماء الأشعة كما في الكتاب
+                const mid = { x: (T.x + P.x) / 2, y: (T.y + P.y) / 2 };
+                ctx.font = '12px Cairo, sans-serif'; ctx.fillStyle = COL.ray; ctx.textAlign = 'center';
+                if (ray.kind === 'par') ctx.fillText('شعاع 1', mid.x, mid.y - 8);
+                else if (ray.kind === 'F') ctx.fillText('شعاع 2', mid.x, mid.y + 16);
+
+                if (ray.kind === 'par') {
+                    // العمود CP (إلى المركز) وزاويتا السقوط والانعكاس بالنسبة إليه
+                    const nF = concave ? unitVec(Cp.x - P.x, Cp.y - P.y) : unitVec(P.x - Cp.x, P.y - Cp.y);
+                    ctx.save(); ctx.strokeStyle = COL.normal; ctx.lineWidth = 1.2; ctx.setLineDash([5, 4]);
+                    line(ctx, P.x, P.y, Cp.x, Cp.y);
+                    ctx.restore();
+                    const vIn = { x: -ray.u.x, y: ray.u.y };     // نحو مصدر الشعاع الوارد
+                    const vOut = { x: ray.r.x, y: -ray.r.y };    // اتجاه الشعاع المنعكس
+                    angleMark(ctx, P, vIn, nF, 16, 'θᵢ', COL.angle);
+                    angleMark(ctx, P, nF, vOut, 28, 'θᵣ', COL.angle);
+                }
+            }
+
+            // الصورة I1 (متقطعة إذا كانت خيالية) وتسمياتها
+            const up = I.y < cy;                         // المعتدلة فوق المحور، والمقلوبة تحته
+            drawArrow(ctx, I.x, cy, I.x, I.y, COL.img, 3, virt);
+            ctx.font = '13px Cairo, sans-serif'; ctx.fillStyle = COL.img;
+            if (up) {                                    // الاسم فوق رأس السهم
+                ctx.textAlign = 'center'; ctx.fillText('الصورة', I.x, I.y - 10);
+                ctx.textAlign = 'left'; ctx.fillStyle = '#e5e7eb'; ctx.fillText('I₁', I.x + 8, I.y + 4);
+            } else {                                     // المقلوبة: الاسم بجانب رأس السهم
+                ctx.textAlign = 'left'; ctx.fillText('الصورة', I.x + 10, I.y + 16);
+                ctx.fillStyle = '#e5e7eb'; ctx.fillText('I₁', I.x + 8, I.y - 4);
+            }
+
+            // المسافات كما في الكتاب: dₒ و dᵢ تحت المحور، و f و r بينهما
+            dimension(ctx, cx, Fx, cy + 40, 'f');
+            dimension(ctx, cx, Cx, cy + 62, 'r');
+            dimension(ctx, xo, cx, cy + 92, 'dₒ');
+            dimension(ctx, I.x, cx, cy + 116, 'dᵢ');
         }
         drawHUD(ctx);
     }
